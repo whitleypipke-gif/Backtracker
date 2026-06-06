@@ -5,7 +5,7 @@
   --color-customBlack: #121212;
   --color-customGray: #949494;
   --font-custom: 'Poppins', sans-serif;
-  --color-customBlue: #024ddf;
+  --color-customBlue: rgb(2, 75, 222);
 }
 @import 'leaflet/dist/leaflet.css';
 

@@ -1,10 +1,10 @@
 import React, { useRef, useState } from "react";
 import Modal from "react-modal";
 import { gsap } from "gsap";
-import { MdInfo, MdOutlineClose } from "react-icons/md";
+import { MdInfo, MdInfoOutline, MdOutlineClose } from "react-icons/md";
 import { LuDot } from "react-icons/lu";
 import { IoSend, IoTicket } from "react-icons/io5";
-import { BsUpcScan } from "react-icons/bs";
+import { BsInfoCircle, BsUpcScan } from "react-icons/bs";
 import { GoChevronRight } from "react-icons/go";
 import { useDispatch } from "react-redux";
 import { deleteTicket } from "../redux/ticketSlice";
@@ -21,7 +21,7 @@ import { db } from "../firebase.config";
 import { collection, addDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { AiOutlineCheck } from "react-icons/ai";
-import { FaTicketAlt } from "react-icons/fa";
+import { FaInfo, FaTicketAlt } from "react-icons/fa";
 const TicketModal = ({ isOpen, onClose, ticket }) => {
   if (!ticket) return null;
 
@@ -46,7 +46,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
         originalHeaderRadius = headerEl.style.borderRadius;
         headerEl.style.borderRadius = "0";
         console.log(
-          "generateTicketPDF: Header border radius set to 0 for capture."
+          "generateTicketPDF: Header border radius set to 0 for capture.",
         );
       }
 
@@ -76,7 +76,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
       const imgHeight = (canvasHeight * pageWidth) / canvasWidth;
       const yPosition = (pageHeight - imgHeight) / 8;
       console.log(
-        `generateTicketPDF: Calculated image dimensions: ${imgWidth} x ${imgHeight}, yPosition: ${yPosition}`
+        `generateTicketPDF: Calculated image dimensions: ${imgWidth} x ${imgHeight}, yPosition: ${yPosition}`,
       );
 
       // Add the captured ticket image to the PDF
@@ -87,19 +87,19 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
       const dummyTicketId = "TICKET-123456"; // Dummy data for QR code
       console.log(
         "generateTicketPDF: Generating QR Code with value:",
-        dummyTicketId
+        dummyTicketId,
       );
 
       const qrDataUrl = await QRCode.toDataURL(dummyTicketId);
       console.log(
         "generateTicketPDF: QR Code generated, data URL length:",
-        qrDataUrl.length
+        qrDataUrl.length,
       );
 
       if (!qrDataUrl.startsWith("data:image/png")) {
         console.error(
           "generateTicketPDF: Unexpected QR code data URL format",
-          qrDataUrl
+          qrDataUrl,
         );
       }
 
@@ -115,7 +115,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
       console.log(
         "generateTicketPDF: QR Code added to PDF at position:",
         qrX,
-        qrY
+        qrY,
       );
 
       // Generate PDF blob
@@ -148,7 +148,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
     gsap.fromTo(
       mainModalRef.current,
       { y: "100%", opacity: 0 },
-      { y: "0%", opacity: 1, duration: 0.3, ease: "power2.out" }
+      { y: "0%", opacity: 1, duration: 0.3, ease: "power2.out" },
     );
   };
   const beforeCloseMainModal = () => {
@@ -167,7 +167,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
     gsap.fromTo(
       transferModalRef.current,
       { y: "100%", opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.3, ease: "power2.out" }
+      { y: 0, opacity: 1, duration: 0.3, ease: "power2.out" },
     );
   };
   const beforeCloseTransferModal = () => {
@@ -197,7 +197,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
     gsap.fromTo(
       transferDetailModalRef.current,
       { y: "100%", opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.3, ease: "power2.out" }
+      { y: 0, opacity: 1, duration: 0.3, ease: "power2.out" },
     );
   };
   const beforeCloseTransferDetailModal = () => {
@@ -246,6 +246,13 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
     },
   };
 
+  const capitalize = (str) => {
+    return str
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(" ");
+  };
+
   return (
     <>
       {/* MAIN TICKET MODAL */}
@@ -292,58 +299,58 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                   <div
                     ref={ticketRef}
                     key={i}
-                    className="flex-none w-80 rounded-md shadow-md relative bg-white border border-gray-200"
+                    className="flex-none w-80 h-[494px] rounded-xl relative border-[1.6px] border-gray-300 rounded-t-[14px] "
                   >
-                    {/* Top Bar */}
-                    <div className="bg-blue-700 text-white text-xs p-2 flex justify-center rounded-t-md items-center">
-                      <p className="uppercase text-base font-light">
-                        {ticket.ticketHeader || "GA"}
-                      </p>
-                    </div>
+                    <div className="bg-customBlue rounded-t-xl">
+                      {/* Top Bar */}
+                      <div className="text-white text-xs p-2 flex justify-between items-center">
+                        <psuedo className="w-[18px]" />
+                        <p className="text-xs  opacity-70">
+                          {capitalize(ticket.ticketHeader) || "GA"}
+                        </p>
+                        <MdInfoOutline className="text-lg" />
+                      </div>
 
-                    {/* Modified Middle Bar */}
-                    {ticket.row && ticket.seatNumber ? (
-                      <div className="bg-blue-600 text-white px-6 text-base py-4 flex justify-between items-center">
-                        <div className="flex flex-col">
-                          <span className="uppercase text-xs font-light">
-                            SEC
-                          </span>
-                          <span className="uppercase font-semibold">
-                            {ticket.section || "GA"}
+                      {/* Modified Middle Bar */}
+                      {ticket.row && ticket.seatNumber ? (
+                        <div className="text-white px-6 text-base py-4 flex justify-between items-center">
+                          <div className="flex flex-col justify-evenly items-center w-[25%] text-center">
+                            <span className="text-xs font-semibold">SEC</span>
+                            <span className=" font-semibold">
+                              {capitalize(ticket.section) || "GA"}
+                            </span>
+                          </div>
+                          <div className="flex text-center flex-col">
+                            <span className=" text-xs font-light">Row</span>
+                            <span className=" font-semibold">
+                              {capitalize(ticket.row)}
+                            </span>
+                          </div>
+                          <div className="flex flex-col text-center">
+                            <span className=" text-xs font-light">
+                              {capitalize(ticket.admissionType) ||
+                                "General Admission"}
+                            </span>
+                            <span className=" font-semibold">
+                              {dynamicSeat}
+                            </span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="bg-customBlue text-white px-9 text-base py-4 flex justify-between">
+                          <div className="flex flex-col justify-center items-center">
+                            <span className="text-xs">SEC</span>
+                            <span className=" font-semibold">
+                              {capitalize(ticket.section) || "GA"}
+                            </span>
+                          </div>
+                          <span className=" font-semibold">
+                            {capitalize(ticket.admissionType) ||
+                              "General Admission"}
                           </span>
                         </div>
-                        <div className="flex text-center flex-col">
-                          <span className="uppercase text-xs font-light">
-                            Row
-                          </span>
-                          <span className="uppercase font-semibold">
-                            {ticket.row}
-                          </span>
-                        </div>
-                        <div className="flex flex-col text-center">
-                          <span className="uppercase text-xs font-light">
-                            {ticket.admissionType || "General Admission"}
-                          </span>
-                          <span className="uppercase font-semibold">
-                            {dynamicSeat}
-                          </span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="bg-blue-600 text-white px-6 text-base py-4 flex justify-between">
-                        <div className="flex flex-col">
-                          <span className="uppercase text-xs font-light">
-                            SEC
-                          </span>
-                          <span className="uppercase font-semibold">
-                            {ticket.section || "GA"}
-                          </span>
-                        </div>
-                        <span className="uppercase font-light">
-                          {ticket.admissionType || "General Admission"}
-                        </span>
-                      </div>
-                    )}
+                      )}
+                    </div>
 
                     {/* Ticket Image */}
                     <div className="relative h-52 w-full bg-gray-200">
@@ -355,34 +362,35 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                       />
 
                       <div className="absolute bottom-0 left-0 w-full h-16 bg-gradient-to-t from-black via-black/70 to-transparent"></div>
-                      <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2 text-center text-white w-full px-4">
+                      <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 text-center text-white w-full px-4">
                         <h2 className="text-lg font-normal">{ticket.title}</h2>
                         <p className="flex items-center justify-center text-xs font-light">
                           {ticket.dateTime}
-                          <LuDot className="mx-1 text-xl" />
+                          <LuDot className="text-xl mx-0.5" />
                           {ticket.location}
                         </p>
                       </div>
                     </div>
 
                     {/* Lower Section */}
-                    <div className="py-6 px-4 pb-12 border-b border-customBlue text-gray-800">
+                    <div className="py-6 px-4 pb-12 bg-white text-gray-800 rounded-b-xl">
                       <p className="text-sm text-center font-bold mb-2">
                         {ticket.gate || "GATE 1"}
                       </p>
                       {/* View Ticket Button */}
                       <button
-                        className="bg-customBlue w-full text-white py-2 text-sm mt-4 font-medium mb-2 flex items-center justify-center"
-                        onClick={handleDeleteTicket}
+                        className="bg-black w-[90%] mx-auto text-white py-2 text-xs mt-4 font-light mb-2 flex items-center justify-center rounded-[1px]"
+                        // onClick={handleDeleteTicket}
                       >
-                        <BsUpcScan className="mr-2 text-base" />
+                        <BsUpcScan className="mr-2" />
                         View Ticket
                       </button>
                       {/* Ticket Details Link */}
-                      <p className="text-customBlue text-xs text-center font-bold mt-5 cursor-pointer">
+                      <p className="text-neutral-700 text-xs text-center font-bold mt-5 cursor-pointer">
                         Ticket Details
                       </p>
                     </div>
+                    <div className="w-[90%] mx-auto rounded-xl border-b border border-customBlue rounded-b-xl"></div>
                   </div>
                 );
               })}
@@ -399,7 +407,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
             {/* Transfer & Sell Buttons */}
             <div className="mt-6 flex justify-center space-x-4">
               <button
-                className="bg-customBlue text-white w-36 py-6 h-10 rounded-xl text-sm items-center flex justify-center  font-medium"
+                className="bg-customBlue text-white w-36 py-6 h-10 rounded-lg text-sm items-center flex justify-center"
                 onClick={() => setIsTransferOpen(true)}
               >
                 Transfer
@@ -407,18 +415,24 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
               <button
                 disabled={!ticket.forSale}
                 className={`
-    w-36 py-6 h-10 rounded-xl flex items-center justify-center text-sm font-medium
+    w-36 py-6 h-10 rounded-lg flex items-center justify-center text-sm font-medium
     ${
       ticket.forSale
-        ? "bg-customBlue text-white hover:bg-blue-700"
+        ? "bg-customBlue text-white hover:bg-[#0139A7]"
         : "bg-gray-400 text-gray-200 cursor-not-allowed opacity-50"
     }
   `}
               >
                 Sell
               </button>
+              <button
+                className="bg-customBlue text-white w-36 py-6 h-10 rounded-lg text-sm items-center flex justify-center "
+                onClick={() => setIsTransferOpen(true)}
+              >
+                Orders
+              </button>
             </div>
-            <div className="mt-7">
+            <div className="mt-7 rounded-2xl">
               <MapComponent lat={ticket.lat} lng={ticket.lng} />
             </div>
           </div>
@@ -442,9 +456,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
         >
           {/* Transfer Modal Header */}
           <div className="flex items-center justify-center border-b pb-2 relative">
-            <h2 className="text-xs font-medium uppercase">
-              Select Tickets to Transfer
-            </h2>
+            <h2 className="text-xs font-medium ">Select Tickets to Transfer</h2>
           </div>
 
           {/* Info Message */}
@@ -546,7 +558,7 @@ function TransferSeatSelector({ quantityNumber, ticket, onDone }) {
           {selectedSeats.length} Selected
         </p>
         <button
-          className="flex items-center uppercase text-blue-600 font-medium text-xs"
+          className="flex items-center  text-blue-600 font-medium text-xs"
           onClick={() => onDone(selectedSeats)}
         >
           Transfer To
@@ -579,7 +591,7 @@ function TransferDetailModal({
     gsap.fromTo(
       transferDetailModalRef.current,
       { y: "100%", opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.3, ease: "power2.out" }
+      { y: 0, opacity: 1, duration: 0.3, ease: "power2.out" },
     );
   };
   const beforeClose = () => {
@@ -718,7 +730,7 @@ function TransferDetailModal({
         >
           {/* Header */}
           <div className="flex items-center justify-center border-b border-gray-300 pb-2 relative">
-            <h2 className="text-xs font-bold uppercase">Transfer Tickets</h2>
+            <h2 className="text-xs font-bold ">Transfer Tickets</h2>
           </div>
 
           {/* Ticket Summary */}
@@ -753,9 +765,7 @@ function TransferDetailModal({
             </div>
 
             <div className="space-y-1">
-              <label className="block text-black font-medium">
-                Email 
-              </label>
+              <label className="block text-black font-medium">Email</label>
               <input
                 type="text"
                 value={emailOrMobile}
@@ -776,7 +786,7 @@ function TransferDetailModal({
 
           <div className="border-t mt-1 border-gray-200  mb-12"></div>
           <button
-            className="absolute left-2 flex bottom-6 items-center text-xs uppercase text-customBlue font-medium"
+            className="absolute left-2 flex bottom-6 items-center text-xs  text-customBlue font-medium"
             onClick={async () => {
               await beforeClose();
               onClose();
@@ -787,7 +797,7 @@ function TransferDetailModal({
           </button>
 
           <button
-            className="absolute right-2 bg-customBlue py-2 bottom-4 px-2 w-36 justify-center  rounded-sm flex items-center text-xs uppercase text-white font-normal"
+            className="absolute right-2 bg-customBlue py-2 bottom-4 px-2 w-36 justify-center  rounded-sm flex items-center text-xs  text-white font-normal"
             onClick={handleTransfer}
           >
             {loading ? (

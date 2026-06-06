@@ -169,7 +169,7 @@ export default function TransferTicketForm({ ticket }) {
           className={`w-full py-3 rounded-md text-white font-medium transition ${
             loading
               ? "bg-gray-400 cursor-not-allowed"
-              : "bg-blue-600 hover:bg-blue-700"
+              : "bg-blue-600 hover:bg-[#0139A7]"
           }`}
         >
           {loading ? "Sending…" : "Accept Tickets"}

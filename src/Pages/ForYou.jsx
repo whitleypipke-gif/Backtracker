@@ -275,7 +275,7 @@ const ForYou = () => {
               />
               <label
                 htmlFor="imageFile"
-                className="inline-block bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md cursor-pointer transition"
+                className="inline-block bg-blue-600 hover:bg-[#0139A7] text-white px-4 py-2 rounded-md cursor-pointer transition"
               >
                 Choose File
               </label>
@@ -311,7 +311,7 @@ const ForYou = () => {
             className={`w-full py-3 rounded-md font-semibold text-white mt-4 ${
               uploading
                 ? "bg-gray-400 cursor-not-allowed"
-                : "bg-customBlue hover:bg-blue-700"
+                : "bg-customBlue hover:bg-[#0139A7]"
             }`}
           >
             {uploading ? "Uploading..." : "Upload"}
@@ -885,7 +885,7 @@ function TransferEditor({ data }) {
         <button
           onClick={handleSendTransferToClient}
           disabled={transferLoading || !senderFullName}
-          className="bg-customBlue hover:bg-blue-700 text-white px-4 py-2 rounded text-xs uppercase font-medium"
+          className="bg-customBlue hover:bg-[#0139A7] text-white px-4 py-2 rounded text-xs uppercase font-medium"
         >
           {transferLoading ? "Sending…" : "Transfer to Client"}
         </button>

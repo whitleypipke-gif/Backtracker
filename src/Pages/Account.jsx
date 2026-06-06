@@ -510,7 +510,7 @@ const Account = () => {
           </button>
           <button
             onClick={handleSaveNotifications}
-            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
+            className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-[#0139A7]"
           >
             Save
           </button>

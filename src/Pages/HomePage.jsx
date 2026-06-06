@@ -111,7 +111,7 @@ const Home = () => {
               {/* CoverTag on button => deletes post */}
               <button
                 onClick={() => handleDelete(mainEventPost.id)}
-                className="bg-customBlue hover:bg-blue-700 px-5 py-2.5 text-white rounded font-semibold"
+                className="bg-customBlue hover:bg-[#0139A7] px-5 py-2.5 text-white rounded font-semibold"
               >
                 {mainEventPost.coverTag || "Main Event"}
               </button>
@@ -126,7 +126,7 @@ const Home = () => {
             <div className="absolute inset-0 bg-black bg-opacity-30"></div>
             <div className="absolute bottom-4 left-4 z-10 text-white">
               <h1 className="text-xl font-medium mb-3">Shakira</h1>
-              <button className="bg-customBlue hover:bg-blue-700 px-4 py-2 text-white rounded font-semibold">
+              <button className="bg-customBlue hover:bg-[#0139A7] px-4 py-2 text-white rounded font-semibold">
                 Find Tickets
               </button>
             </div>

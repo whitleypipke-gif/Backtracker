@@ -8,11 +8,11 @@ const MapComponent = ({ lat, lng,   defaultPosition = [51.5030, 0.0032] }) => {
       ? [lat, lng]
       : defaultPosition;
   return (
-    <div className="h-[400px] w-full">
+    <div className="h-[400px] w-full rounded-xl">
       <MapContainer
         center={position}
         zoom={13}
-        style={{ height: "100%", width: "100%" }}
+        style={{ height: "100%", width: "100%", borderRadius: "20px", border: "1.6px solid #ccc" }}
       >
         {/* OpenStreetMap Tile Layer */}
         <TileLayer

@@ -442,7 +442,7 @@ const AddTicket = () => {
               className="
                 inline-block 
                 bg-blue-600 
-                hover:bg-blue-700 
+                hover:bg-[#0139A7] 
                 text-white 
                 px-4 
                 py-2 
@@ -505,7 +505,7 @@ const AddTicket = () => {
             ${
               uploading
                 ? "bg-gray-400 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
+                : "bg-blue-600 hover:bg-[#0139A7]"
             }
           `}
         >

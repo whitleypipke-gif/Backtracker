@@ -108,7 +108,7 @@ const Login = () => {
             className={`w-full py-3 rounded-md font-semibold flex justify-center items-center transition ${
               loading
                 ? "bg-gray-600 cursor-not-allowed"
-                : "bg-blue-600 hover:bg-blue-700"
+                : "bg-blue-600 hover:bg-[#0139A7]"
             }`}
             disabled={loading}
           >
