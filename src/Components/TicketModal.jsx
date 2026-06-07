@@ -414,20 +414,17 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
               </button>
               <button
                 disabled={!ticket.forSale}
-                className={`
-    w-36 py-6 h-10 rounded-lg flex items-center justify-center text-sm font-medium
-    ${
-      ticket.forSale
-        ? "bg-customBlue text-white hover:bg-[#0139A7]"
-        : "bg-gray-400 text-gray-200 cursor-not-allowed opacity-50"
-    }
-  `}
+                className={` w-36 py-6 h-10 rounded-lg flex items-center justify-center text-sm font-medium ${
+                  ticket.forSale
+                    ? "bg-customBlue text-white hover:bg-[#0139A7]"
+                    : "bg-gray-400 text-gray-200 cursor-not-allowed opacity-50"
+                }`}
               >
                 Sell
               </button>
               <button
                 className="bg-customBlue text-white w-36 py-6 h-10 rounded-lg text-sm items-center flex justify-center "
-                onClick={() => setIsTransferOpen(true)}
+                // onClick={() => setIsTransferOpen(true)}
               >
                 Orders
               </button>
@@ -515,7 +512,7 @@ function TransferSeatSelector({ quantityNumber, ticket, onDone }) {
       <div className="mt-4">
         <div className="flex items-center justify-between space-x-2">
           <p className="text-base text-black font-medium">
-            Sec {ticket.section || "GA"}, Row {ticket.row || "-"}
+            {`Section ${ticket.section || "GA"} ${ticket.row ? `, Row ${ticket.row || "-"}` : ""}`}
           </p>
           {/* Show number selected & total */}
           <div className="text-black flex items-center font-medium">
@@ -535,7 +532,7 @@ function TransferSeatSelector({ quantityNumber, ticket, onDone }) {
               >
                 {/* Blue Top Portion */}
                 <div className="bg-customBlue w-full text-white text-xs flex justify-center items-center py-2 rounded-t-md">
-                  SEAT
+                  SEAT {ticket.seatNumber ? Number(ticket.seatNumber) + i : i + 1}
                 </div>
 
                 {/* Selectable Circle */}
@@ -559,7 +556,7 @@ function TransferSeatSelector({ quantityNumber, ticket, onDone }) {
         </p>
         <button
           className="flex items-center  text-blue-600 font-medium text-xs"
-          onClick={() => onDone(selectedSeats)}
+          onClick={() => selectedSeats.length > 0 && onDone(selectedSeats)}
         >
           Transfer To
           <GoChevronRight className="ml-1" />
@@ -687,6 +684,7 @@ function TransferDetailModal({
 
   return (
     <>
+      // Transfer Details Modal: collect recipient info and confirm transfer
       <Modal
         isOpen={isOpen}
         onAfterOpen={afterOpen}
@@ -808,6 +806,7 @@ function TransferDetailModal({
           </button>
         </div>
       </Modal>
+      // Success Modal: show after transfer is complete
       <Modal
         isOpen={showSuccess}
         onRequestClose={() => setShowSuccess(false)}

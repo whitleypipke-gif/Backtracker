@@ -9,6 +9,7 @@ export default {
         customBlack: "#121212",
       },
       fontFamily: {
+        'mulish': ['"Mulish"', 'sans-serif'], 
         poppins: ['Poppins', 'sans-serif'],
       },
     },
