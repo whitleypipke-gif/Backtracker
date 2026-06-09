@@ -603,7 +603,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                             SEAT
                           </p>
                           <p className="text-gray-800 font-extrabold text-[15px]">
-                            {ticket.seat || "--"}
+                            {dynamicSeat || "--"}
                           </p>
                         </div>
                       </div>
