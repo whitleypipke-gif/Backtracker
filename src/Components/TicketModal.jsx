@@ -319,24 +319,21 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
 
                       {/* Modified Middle Bar */}
                       {ticket.row && ticket.seatNumber ? (
-                        <div className="text-white px-6 text-base py-4 flex justify-between items-center">
-                          <div className="flex flex-col justify-evenly items-center w-[25%] text-center">
-                            <span className="text-xs font-semibold">SEC</span>
+                        <div className="bg-customBlue text-white px-9 text-base py-4 flex justify-between">
+                          <div className="flex flex-col justify-center items-center">
+                            <span className="text-xs">SEC</span>
                             <span className=" font-semibold">
                               {capitalize(ticket.section) || "GA"}
                             </span>
                           </div>
-                          <div className="flex text-center flex-col">
-                            <span className=" text-xs font-light">Row</span>
+                          <div className="flex flex-col justify-center items-center">
+                            <span className="text-xs">Row</span>
                             <span className=" font-semibold">
                               {capitalize(ticket.row)}
                             </span>
                           </div>
-                          <div className="flex flex-col text-center">
-                            <span className=" text-xs font-light">
-                              {capitalize(ticket.admissionType) ||
-                                "General Admission"}
-                            </span>
+                          <div className="flex flex-col justify-center items-center">
+                            <span className="text-xs">Seat</span>
                             <span className=" font-semibold">
                               {dynamicSeat}
                             </span>
@@ -615,7 +612,8 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
           </div>
 
           {/* Pill tab */}
-          <div className="sticky border border-neutral-300 h-18 w-50 bottom-9 left-1/2 z-10 -translate-x-1/2 rounded-full bg-white shadow-lg shadow-neutral-300 backdrop-blur-md flex items-center justify-center">
+          <div className="sticky bottom-9 z-10 w-full flex justify-center items-center">
+          <div className="border border-neutral-300 h-18 w-50 bottom-9 z-10 mx-auto rounded-full bg-white shadow-lg shadow-neutral-300 backdrop-blur-md flex items-center justify-center">
             <div
               className="flex flex-col items-center justify-center w-full h-full"
               onClick={() => setIsTransferOpen(true)}
@@ -627,6 +625,8 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
               <FaRotate className={`text-[22px] mb-1.5`} />
               <p className="text-[12px] font-medium">Sell</p>
             </div>
+          </div>
+            
           </div>
         </div>
       </Modal>
