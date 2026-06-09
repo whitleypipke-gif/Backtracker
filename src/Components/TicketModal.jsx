@@ -442,7 +442,8 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
               </button>
             </div>
 
-            <div className="mt-3 rounded-2xl">
+            <div className="mt-3 rounded-2xl relative">
+              <p className="absolute z-9999 top-2 left-4 text-xl text-white drop-shadow-[0_3px_2px_rgba(0,0,0,1)] ">{ticket.location}</p>
               <MapComponent lat={ticket.lat} lng={ticket.lng} />
             </div>
           </div>
@@ -513,7 +514,10 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                     fill="white"
                   />
                 </svg>
-                <p className="ml-1"><span className="text-xs">x</span>{quantityNumber}</p>
+                <p className="ml-1">
+                  <span className="text-xs">x</span>
+                  {quantityNumber}
+                </p>
               </p>
             </div>
             <div className="bg-customBlue py-3 w-full capitalize text-[15px] flex items-center justify-center font-medium">
@@ -613,20 +617,19 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
 
           {/* Pill tab */}
           <div className="sticky bottom-9 z-10 w-full flex justify-center items-center">
-          <div className="border border-neutral-300 h-18 w-50 bottom-9 z-10 mx-auto rounded-full bg-white shadow-lg shadow-neutral-300 backdrop-blur-md flex items-center justify-center">
-            <div
-              className="flex flex-col items-center justify-center w-full h-full"
-              onClick={() => setIsTransferOpen(true)}
-            >
-              <GoArrowUpRight className={`text-[28px]  text-customBlue`} />
-              <p className="text-[12px] font-medium">Transfer</p>
+            <div className="border border-neutral-300 h-18 w-50 bottom-9 z-10 mx-auto rounded-full bg-white shadow-lg shadow-neutral-300 backdrop-blur-md flex items-center justify-center">
+              <div
+                className="flex flex-col items-center justify-center w-full h-full"
+                onClick={() => setIsTransferOpen(true)}
+              >
+                <GoArrowUpRight className={`text-[28px]  text-customBlue`} />
+                <p className="text-[12px] font-medium">Transfer</p>
+              </div>
+              <div className="flex flex-col items-center justify-center w-full h-full border-l-[0.2px] border-gray-300 text-neutral-400">
+                <FaRotate className={`text-[22px] mb-1.5`} />
+                <p className="text-[12px] font-medium">Sell</p>
+              </div>
             </div>
-            <div className="flex flex-col items-center justify-center w-full h-full border-l-[0.2px] border-gray-300 text-neutral-400">
-              <FaRotate className={`text-[22px] mb-1.5`} />
-              <p className="text-[12px] font-medium">Sell</p>
-            </div>
-          </div>
-            
           </div>
         </div>
       </Modal>
