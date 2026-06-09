@@ -728,7 +728,7 @@ function TransferSeatSelector({ quantityNumber, ticket, onDone }) {
                 {/* Blue Top Portion */}
                 <div className="bg-customBlue w-full text-white text-xs flex justify-center items-center py-2 rounded-t-md">
                   {ticket.row
-                    ? `SEAT {ticket.seatNumber ? Number(ticket.seatNumber) + i : i + 1}`
+                    ? `SEAT ${ticket.seatNumber ? Number(ticket.seatNumber) + i : i + 1}`
                     : ticket.section}
                 </div>
 
