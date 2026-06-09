@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import Navbar from "../Components/NavBar";
 import { useSelector, useDispatch } from "react-redux";
 import { setTickets, deleteTicket } from "../redux/ticketSlice";
-import {  collection, onSnapshot, doc, getDoc } from "firebase/firestore";
+import { collection, onSnapshot, doc, getDoc } from "firebase/firestore";
 import { LuDot } from "react-icons/lu";
 import { IoTicket } from "react-icons/io5";
 import CountryFlag from "react-country-flag";
@@ -42,7 +42,7 @@ const MyEvents = () => {
         }));
         dispatch(setTickets(updated));
       },
-      (error) => console.error("Tickets listener error:", error)
+      (error) => console.error("Tickets listener error:", error),
     );
     return () => unsubscribe();
   }, [dispatch]);
@@ -141,28 +141,53 @@ const MyEvents = () => {
       <div className="p-2">
         {activeTab === "upcoming" &&
           upcomingTickets.map((ticket) => (
-            <div key={ticket.id} className="mb-4 rounded-xl text-black overflow-hidden">
+            <div
+              key={ticket.id}
+              className="mb-6 rounded-sm text-black overflow-hidden"
+            >
               {/* Image + Overlay; clicking calls openModal */}
               <div
-                className="relative  h-56 md:h-48  cursor-pointer"
+                className="relative  h-48 md:h-48  cursor-pointer"
                 onClick={() => openModal(ticket)}
               >
                 <img
                   src={ticket.coverImage}
-                  alt={ticket.title}
-                  className="w-full h-full  object-cover"
+                  alt=""
+                  className="w-full h-48 object-cover"
                 />
-                <div className="absolute bottom-0 left-0 w-full h-20 bg-gradient-to-t from-black via-black/70 to-transparent"></div>
-                <div className="absolute bottom-0 left-0 w-full text-white p-3">
-                  <h2 className="text-xl font-normal mb-0.5">{ticket.title}</h2>
-                  <p className="flex items-center text-xs mb-1">
+
+                <div className="absolute bottom-0 w-full text-white">
+                  <div className="bg-neutral-800 border border-neutral-800 px-4 pt-2 w-[60%] capitalize">
+                    {" "}
                     {ticket.dateTime}
-                    <LuDot className="mx-1 text-base" />
-                    {ticket.location}
-                  </p>
-                  <p className="flex items-center text-xs font-light">
-                    <IoTicket className="mr-1 text-sm" />
-                    {ticket.quantity} tickets
+                  </div>
+                </div>
+              </div>
+              <div className="w-full text-white">
+                <div className="bg-neutral-800 border border-neutral-800 px-4 pt-2 pb-1 w-full capitalize text-[24px] font-extrabold">
+                  {" "}
+                  {ticket.title}
+                </div>
+                <div className="bg-neutral-800 border border-neutral-800 px-4 pb-4.5 w-full capitalize text-[14px] font-light flex items-center justify-between">
+                  {ticket.location}
+                  <p className="font-bold text-lg flex items-center justify-items-end">
+                    <svg
+                      className="-rotate-3"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 94 97"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M71.1992 0.19043L71.8721 0.101562L73.8232 14.8789L91.0635 18.374L93.4355 18.792L83.0381 77.7549L83.0781 77.832L62.2559 96.1748L62.2051 96.4111L28.0674 89.0068L28.0693 88.9932L15.2627 91.252L14.2773 91.4258L0.472656 13.1328L0.423828 13.1406L0 10.1709L71.1729 0L71.1992 0.19043ZM79.7256 59.5645L79.7402 59.5742L79.7295 59.5898L79.7559 59.7881L79.583 59.8105L64.5029 82.5693L35.8438 87.6221L61.2627 93.1357L80.2256 76.4307L89.9629 21.2119L74.2393 18.0244L79.7256 59.5645ZM3.44336 12.709L16.7109 87.9492L62.7129 79.8379L76.6074 58.8701L69.2676 3.30273L3.44336 12.709ZM62.4355 71.791L21.3359 78.1836L20.1064 70.2793L61.2061 63.8857L62.4355 70.791ZM62.7764 12.833L62.8525 12.8223L63.6006 18L64.0869 21.0439L64.042 21.0508L67.085 42.0889L67.1006 42.0869L68.6758 51.9619L18.8184 59.9121L17.7041 52.9287L17.6846 52.9316L17.4854 51.5576L17.2432 50.0361L17.2646 50.0322L14.1514 28.5059L12.6543 19.1182L62.5117 11.168L62.7764 12.833ZM24.0986 27.4189L27.1416 48.457L57.209 43.6631L54.166 22.625L24.0986 27.4189ZM52.2041 38.4854L30.3857 41.9414L28.665 31.0762L50.4834 27.6211L52.2041 38.4854Z"
+                        fill="white"
+                      />
+                    </svg>
+                    <p className="ml-1">
+                      <span className="text-xs">x</span>
+                      {ticket.quantity}
+                    </p>
                   </p>
                 </div>
               </div>
@@ -182,7 +207,7 @@ const MyEvents = () => {
         isOpen={showModal}
         onClose={closeModal}
         ticket={selectedTicket}
-        // generateTicketPDF={generateTicketPDF} 
+        // generateTicketPDF={generateTicketPDF}
       />
       <Toaster position="top-right" reverseOrder={false} />
     </div>

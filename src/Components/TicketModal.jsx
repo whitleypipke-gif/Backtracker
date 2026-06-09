@@ -323,7 +323,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                           <div className="flex flex-col justify-center items-center">
                             <span className="text-xs">SEC</span>
                             <span className=" font-semibold">
-                              {capitalize(ticket.section) || "GA"}
+                              {(ticket.section) || "GA"}
                             </span>
                           </div>
                           <div className="flex flex-col justify-center items-center">
@@ -344,7 +344,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                           <div className="flex flex-col justify-center items-center">
                             <span className="text-xs">SEC</span>
                             <span className=" font-semibold">
-                              {capitalize(ticket.section) || "GA"}
+                              {(ticket.section) || "GA"}
                             </span>
                           </div>
                           <span className=" font-semibold">
@@ -462,7 +462,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
         ariaHideApp={false}
       >
         <div
-          className="h-screen relative overflow-y-auto"
+          className="h-screen mt-5 relative overflow-y-auto"
           ref={transferModalRef}
         >
           <div className="w-full h-64 relative">
@@ -936,8 +936,7 @@ function TransferDetailModal({
             <p className="text-xs">
               {seatCount} Ticket(s) Selected <br />
             </p>
-            Sec <span className="font-bold">{ticket.section || "GA"}</span> Row{" "}
-            {ticket.row || "?"}
+            {`Section ${ticket.section || "GA"} ${ticket.row ? `, Row ${ticket.row || "-"}` : ""}`}
           </p>
 
           {/* Transfer Form */}
