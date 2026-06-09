@@ -41,7 +41,7 @@ const BottomNav = () => {
   ];
 
   return (
-    <div className="fixed z-40 bottom-0 left-0 w-full bg-white text-white py-7 border-t border-gray-200 flex justify-around">
+    <div className="fixed z-40 bottom-0 left-0 w-full bg-white text-white py-3 border-t border-gray-200 flex justify-around">
       {tabs.map((tab) => {
         // ✅ Determine active tab by checking if current path matches tab.path
         const isActive = location.pathname === tab.path;
@@ -50,7 +50,7 @@ const BottomNav = () => {
           <button
             key={tab.id}
             onClick={() => navigate(tab.path)}
-            className={`flex flex-col items-center -translate-y-4 text-sm transition-all ${
+            className={`flex flex-col items-center text-sm transition-all ${
               isActive ? "text-customBlue" : "text-customGray"
             }`}
           >

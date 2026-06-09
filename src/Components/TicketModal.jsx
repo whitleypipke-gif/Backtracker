@@ -3,14 +3,16 @@ import Modal from "react-modal";
 import { gsap } from "gsap";
 import { MdInfo, MdInfoOutline, MdOutlineClose } from "react-icons/md";
 import { LuDot } from "react-icons/lu";
-import { IoSend, IoTicket } from "react-icons/io5";
-import { BsInfoCircle, BsUpcScan } from "react-icons/bs";
-import { GoChevronRight } from "react-icons/go";
+import { IoBarcode, IoSend, IoTicket } from "react-icons/io5";
+import { BsArrowBarLeft, BsInfoCircle, BsUpcScan } from "react-icons/bs";
+import { GoArrowUpRight, GoChevronRight } from "react-icons/go";
 import { useDispatch } from "react-redux";
 import { deleteTicket } from "../redux/ticketSlice";
 import MapComponent from "./Map";
 import { IoTicketOutline } from "react-icons/io5";
-import { FaRegCircleCheck } from "react-icons/fa6";
+import { PiBarcodeLight } from "react-icons/pi";
+import { FaRegCircleCheck, FaRotate } from "react-icons/fa6";
+import { HiDotsVertical } from "react-icons/hi";
 import { LuTickets } from "react-icons/lu";
 import QRCode from "qrcode";
 import html2canvas from "html2canvas-pro";
@@ -21,12 +23,16 @@ import { db } from "../firebase.config";
 import { collection, addDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { AiOutlineCheck } from "react-icons/ai";
-import { FaInfo, FaTicketAlt } from "react-icons/fa";
+import { TbCards } from "react-icons/tb";
+import { FaArrowLeft, FaInfo, FaTicketAlt } from "react-icons/fa";
 const TicketModal = ({ isOpen, onClose, ticket }) => {
   if (!ticket) return null;
 
   const [isTransferOpen, setIsTransferOpen] = useState(false);
+  const [isTransferDetailPageOpen, setIsTransferDetailPageOpen] =
+    useState(false);
   const [isTransferDetailOpen, setIsTransferDetailOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("tickets");
 
   // The selected seats from the seat selection step
   const [selectedSeats, setSelectedSeats] = useState([]);
@@ -285,7 +291,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
           </div>
 
           {/* Main content: horizontally scrollable tickets */}
-          <div className="flex-1 overflow-y-auto scrollbar-hide p-4 pb-32">
+          <div className="flex-1 overflow-y-auto scrollbar-hide px-4 pt-0.5 pb-32">
             <div
               className="flex space-x-4 overflow-x-auto scrollbar-hide"
               style={{ WebkitOverflowScrolling: "touch" }}
@@ -299,7 +305,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                   <div
                     ref={ticketRef}
                     key={i}
-                    className="flex-none w-80 h-[494px] rounded-xl relative border-[1.6px] border-gray-300 rounded-t-[14px] "
+                    className="flex-none w-80 h-[494px] rounded-xl relative border-[1.6px] border-gray-300 rounded-t-[14px]"
                   >
                     <div className="bg-customBlue rounded-t-xl">
                       {/* Top Bar */}
@@ -373,24 +379,33 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                     </div>
 
                     {/* Lower Section */}
-                    <div className="py-6 px-4 pb-12 bg-white text-gray-800 rounded-b-xl">
-                      <p className="text-sm text-center font-bold mb-2">
-                        {ticket.gate || "GATE 1"}
-                      </p>
+                    <div className="py-4 px-4 pb-12 bg-white text-gray-800 rounded-b-xl">
+                      {ticket.gate && (
+                        <p className="text-sm text-center font-bold mb-2">
+                          {ticket.gate || "GATE 1"}
+                        </p>
+                      )}
                       {/* View Ticket Button */}
                       <button
-                        className="bg-black w-[90%] mx-auto text-white py-2 text-xs mt-4 font-light mb-2 flex items-center justify-center rounded-[1px]"
+                        className={`bg-black w-[90%] mx-auto text-white py-2 text-xs mt-4 font-light mb-2 flex items-center justify-center rounded-[1px] ${ticket.gate ? "" : "mt-8"}`}
                         // onClick={handleDeleteTicket}
                       >
-                        <BsUpcScan className="mr-2" />
+                        <PiBarcodeLight className="mr-2 text-2xl" />
                         View Ticket
                       </button>
                       {/* Ticket Details Link */}
-                      <p className="text-neutral-700 text-xs text-center font-bold mt-5 cursor-pointer">
+                      <p
+                        className="text-neutral-700 text-[14px] text-center font-extrabold mt-5 cursor-pointer"
+                        onClick={() => {
+                          setIsTransferDetailPageOpen(true);
+                        }}
+                      >
                         Ticket Details
                       </p>
                     </div>
-                    <div className="w-[90%] mx-auto rounded-xl border-b border border-customBlue rounded-b-xl"></div>
+                    <div className="absolute bottom-0 w-full flex justify-center">
+                      <div className="w-[90%] mx-auto rounded-xl border-b border border-customBlue rounded-b-xl"></div>
+                    </div>
                   </div>
                 );
               })}
@@ -407,14 +422,14 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
             {/* Transfer & Sell Buttons */}
             <div className="mt-6 flex justify-center space-x-4">
               <button
-                className="bg-customBlue text-white w-36 py-6 h-10 rounded-lg text-sm items-center flex justify-center"
+                className="bg-customBlue text-white w-28 py-5.5 h-10 rounded-lg text-sm items-center flex justify-center"
                 onClick={() => setIsTransferOpen(true)}
               >
                 Transfer
               </button>
               <button
                 disabled={!ticket.forSale}
-                className={` w-36 py-6 h-10 rounded-lg flex items-center justify-center text-sm font-medium ${
+                className={` w-28 py-5.5 h-10 rounded-lg flex items-center justify-center text-sm font-medium ${
                   ticket.forSale
                     ? "bg-customBlue text-white hover:bg-[#0139A7]"
                     : "bg-gray-400 text-gray-200 cursor-not-allowed opacity-50"
@@ -423,14 +438,194 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                 Sell
               </button>
               <button
-                className="bg-customBlue text-white w-36 py-6 h-10 rounded-lg text-sm items-center flex justify-center "
+                className="bg-customBlue text-white w-28 py-5.5 h-10 rounded-lg text-sm items-center flex justify-center "
                 // onClick={() => setIsTransferOpen(true)}
               >
                 Orders
               </button>
             </div>
-            <div className="mt-7 rounded-2xl">
+
+            <div className="mt-3 rounded-2xl">
               <MapComponent lat={ticket.lat} lng={ticket.lng} />
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* {TICKET DETAILS MODAL} */}
+      <Modal
+        isOpen={isTransferDetailPageOpen}
+        onAfterOpen={afterOpenTransferModal}
+        onRequestClose={async () => {
+          await beforeCloseTransferModal();
+          setIsTransferDetailPageOpen(false);
+        }}
+        style={transferModalStyles}
+        ariaHideApp={false}
+      >
+        <div
+          className="h-screen relative overflow-y-auto"
+          ref={transferModalRef}
+        >
+          <div className="w-full h-64 relative">
+            <div className="absolute top-0 left-0 w-full flex justify-between items-center text-white px-4 py-3">
+              <div
+                className="cursor-pointer bg-neutral-800/50 px-2.5 py-2.5 rounded-full text-[18px] flex items-center justify-center text-white"
+                onClick={() => setIsTransferDetailPageOpen(false)}
+              >
+                <FaArrowLeft />
+              </div>
+              <div
+                className="cursor-pointer bg-neutral-800/50 px-4 py-2 rounded-full text-[14px] flex items-center justify-center text-white"
+                onClick={() => setIsTransferDetailPageOpen(false)}
+              >
+                Help
+              </div>
+            </div>
+            <img
+              src={ticket.coverImage}
+              alt=""
+              className="w-full h-full object-cover"
+            />
+
+            <div className="absolute bottom-0 px-4 w-full text-white">
+              <div className="bg-neutral-800 border border-neutral-800 px-4 pt-2 w-[60%] capitalize">
+                {" "}
+                {ticket.dateTime}
+              </div>
+            </div>
+          </div>
+          <div className="px-4 w-full text-white">
+            <div className="bg-neutral-800 border border-neutral-800 px-4 pt-2 pb-1 w-full capitalize text-[24px] font-extrabold">
+              {" "}
+              {ticket.title}
+            </div>
+            <div className="bg-neutral-800 border border-neutral-800 px-4 pb-4.5 w-full capitalize text-[14px] font-light flex items-center justify-between">
+              {ticket.location}
+              <p className="font-bold text-lg flex items-center justify-items-end">
+                <svg
+                  className="-rotate-3"
+                  width="20"
+                  height="20"
+                  viewBox="0 0 94 97"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M71.1992 0.19043L71.8721 0.101562L73.8232 14.8789L91.0635 18.374L93.4355 18.792L83.0381 77.7549L83.0781 77.832L62.2559 96.1748L62.2051 96.4111L28.0674 89.0068L28.0693 88.9932L15.2627 91.252L14.2773 91.4258L0.472656 13.1328L0.423828 13.1406L0 10.1709L71.1729 0L71.1992 0.19043ZM79.7256 59.5645L79.7402 59.5742L79.7295 59.5898L79.7559 59.7881L79.583 59.8105L64.5029 82.5693L35.8438 87.6221L61.2627 93.1357L80.2256 76.4307L89.9629 21.2119L74.2393 18.0244L79.7256 59.5645ZM3.44336 12.709L16.7109 87.9492L62.7129 79.8379L76.6074 58.8701L69.2676 3.30273L3.44336 12.709ZM62.4355 71.791L21.3359 78.1836L20.1064 70.2793L61.2061 63.8857L62.4355 70.791ZM62.7764 12.833L62.8525 12.8223L63.6006 18L64.0869 21.0439L64.042 21.0508L67.085 42.0889L67.1006 42.0869L68.6758 51.9619L18.8184 59.9121L17.7041 52.9287L17.6846 52.9316L17.4854 51.5576L17.2432 50.0361L17.2646 50.0322L14.1514 28.5059L12.6543 19.1182L62.5117 11.168L62.7764 12.833ZM24.0986 27.4189L27.1416 48.457L57.209 43.6631L54.166 22.625L24.0986 27.4189ZM52.2041 38.4854L30.3857 41.9414L28.665 31.0762L50.4834 27.6211L52.2041 38.4854Z"
+                    fill="white"
+                  />
+                </svg>
+                <p className="ml-1"><span className="text-xs">x</span>{quantityNumber}</p>
+              </p>
+            </div>
+            <div className="bg-customBlue py-3 w-full capitalize text-[15px] flex items-center justify-center font-medium">
+              <p className="flex items-center justify-center">
+                <PiBarcodeLight className="text-[28px]" />
+                <span className="ml-1"></span>
+                View Tickets
+              </p>
+            </div>
+          </div>
+
+          <div className="w-full px-4">
+            {/* Tickets and Extras tab placement */}
+            <div className="flex mx-1 items-center justify-between font-medium">
+              <div
+                className={`cursor-pointer flex items-center justify-center w-full relative mr-1 py-4.5 font-bold text-sm ${activeTab === "tickets" ? "text-gray-900" : "text-gray-700"}`}
+                onClick={() => setActiveTab("tickets")}
+              >
+                Tickets
+                <div
+                  className={`absolute bottom-0 w-full ${activeTab === "tickets" ? "text-gray-900 border-gray-900 border-b-4" : "text-gray-700 border-gray-400 border-b-[3px]"}`}
+                ></div>
+              </div>
+              <div
+                className={`cursor-pointer flex items-center justify-center w-full relative ml-1 py-4.5 font-bold text-sm ${activeTab === "extras" ? "text-gray-900" : "text-gray-700"}`}
+                // onClick={() => setActiveTab("extras")}
+                disabled={true}
+              >
+                Extras
+                <div
+                  className={`absolute bottom-0 w-full ${activeTab === "extras" ? "text-gray-900 border-gray-900 border-b-4" : "text-gray-700 border-gray-400 border-b-[3px]"}`}
+                ></div>
+              </div>
+            </div>
+            {activeTab === "tickets" && (
+              <div className="mb-11">
+                <div className="pt-6 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg text-gray-900 font-bold">
+                      Order #29-{ticket.id}/PGR
+                    </h3>
+                    <p className="text-gray-400 text-[15px]">
+                      x{quantityNumber} Tickets
+                    </p>
+                  </div>
+                  <div className="text-gray-900 text-2xl font-bold">
+                    <HiDotsVertical />
+                  </div>
+                </div>
+
+                {Array.from({ length: quantityNumber }).map((_, i) => {
+                  const baseSeat = ticket.seatNumber
+                    ? Number(ticket.seatNumber)
+                    : null;
+                  const dynamicSeat = baseSeat !== null ? baseSeat + i : null;
+                  return (
+                    <div
+                      ref={ticketRef}
+                      key={i}
+                      className="mt-5 space-y-3 text-gray-800"
+                    >
+                      <div className="w-full py-4 px-6 mb-0.5 text-sm font-bold text-gray bg-neutral-200">
+                        Verified Fan Onsale
+                      </div>
+                      <div className="w-full py-4 px-6 bg-neutral-200 flex items-center justify-between">
+                        <div className="flex flex-col items-start justify-center">
+                          <p className="font-bold text-gray-600 text-sm mb-1">
+                            SECTION
+                          </p>
+                          <p className="text-gray-800 font-extrabold text-[15px]">
+                            {ticket.section}
+                          </p>
+                        </div>
+                        <div className="flex flex-col items-center justify-center">
+                          <p className="font-bold text-gray-600 text-sm mb-1">
+                            ROW
+                          </p>
+                          <p className="text-gray-800 font-extrabold text-[15px]">
+                            {ticket.row || "--"}
+                          </p>
+                        </div>
+                        <div className="flex flex-col items-end justify-center">
+                          <p className="font-bold text-gray-600 text-sm mb-1">
+                            SEAT
+                          </p>
+                          <p className="text-gray-800 font-extrabold text-[15px]">
+                            {ticket.seat || "--"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Pill tab */}
+          <div className="sticky border border-neutral-300 h-18 w-50 bottom-9 left-1/2 z-10 -translate-x-1/2 rounded-full bg-white shadow-lg shadow-neutral-300 backdrop-blur-md flex items-center justify-center">
+            <div
+              className="flex flex-col items-center justify-center w-full h-full"
+              onClick={() => setIsTransferOpen(true)}
+            >
+              <GoArrowUpRight className={`text-[28px]  text-customBlue`} />
+              <p className="text-[12px] font-medium">Transfer</p>
+            </div>
+            <div className="flex flex-col items-center justify-center w-full h-full border-l-[0.2px] border-gray-300 text-neutral-400">
+              <FaRotate className={`text-[22px] mb-1.5`} />
+              <p className="text-[12px] font-medium">Sell</p>
             </div>
           </div>
         </div>
@@ -532,7 +727,9 @@ function TransferSeatSelector({ quantityNumber, ticket, onDone }) {
               >
                 {/* Blue Top Portion */}
                 <div className="bg-customBlue w-full text-white text-xs flex justify-center items-center py-2 rounded-t-md">
-                  SEAT {ticket.seatNumber ? Number(ticket.seatNumber) + i : i + 1}
+                  {ticket.row
+                    ? `SEAT {ticket.seatNumber ? Number(ticket.seatNumber) + i : i + 1}`
+                    : ticket.section}
                 </div>
 
                 {/* Selectable Circle */}
