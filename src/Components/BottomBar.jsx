@@ -41,7 +41,7 @@ const BottomNav = () => {
   ];
 
   return (
-    <div className="fixed z-40 bottom-0 left-0 w-full bg-white text-white py-3 border-t border-gray-200 flex justify-around">
+    <div className="fixed z-40 bottom-0 left-0 w-full bg-white text-white pt-3 pb-7 border-t border-gray-200 flex justify-around">
       {tabs.map((tab) => {
         // ✅ Determine active tab by checking if current path matches tab.path
         const isActive = location.pathname === tab.path;
