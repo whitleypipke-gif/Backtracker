@@ -143,7 +143,8 @@ const MyEvents = () => {
           upcomingTickets.map((ticket) => (
             <div
               key={ticket.id}
-              className="mb-6 rounded-sm text-black overflow-hidden"
+              className="mb-6 rounded-sm text-black overflow-hidden cursor-pointer"
+              onClick={() => openModal(ticket)}
             >
               {/* Image + Overlay; clicking calls openModal */}
               <div

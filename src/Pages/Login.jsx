@@ -51,8 +51,6 @@ const Login = () => {
         });
       }
 
-      toast.success("🎉 Login successful!");
-
       setTimeout(() => {
         navigate("/splash"); // Redirect to home page
       }, 500); // Delay to allow users to see success message
@@ -116,12 +114,13 @@ const Login = () => {
                 className="border rounded-[3.5px] w-full max-w-md h-11 border-neutral-500 outline-customBlue p-2"
               />
             </div>
-           )}
+          )}
         </div>
         <div className="w-full max-w-md">
           <button
-            className={`mb-4 ${(emailRegex.test(email) && !((emailExists || email == "Usegen@ticket.com"))) || ((emailExists || email == "Usegen@ticket.com") && password !== "") ? "bg-customBlue text-white" : "text-neutral-400 bg-neutral-100"} text-[15px] w-full max-w-md h-11 rounded-[3.5px] font-bold transition-all duration-300 ease-in-out`}
-            onClick={handleLogin}
+            className={`mb-4 ${((emailRegex.test(email) && !(emailExists || email == "Usegen@ticket.com")) || ((emailExists || email == "Usegen@ticket.com") && password !== "")) && !loading ? "bg-customBlue text-white" : "text-neutral-400 bg-neutral-100"} text-[15px] w-full max-w-md h-11 rounded-[3.5px] font-bold transition-all duration-300 ease-in-out`}
+            onClick={((emailRegex.test(email) && !(emailExists || email == "Usegen@ticket.com")) || ((emailExists || email == "Usegen@ticket.com") && password !== "")) && handleLogin}
+            disabled={loading}
           >
             Continue
           </button>
