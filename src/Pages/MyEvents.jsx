@@ -2,7 +2,14 @@ import React, { useState, useEffect } from "react";
 import Navbar from "../Components/NavBar";
 import { useSelector, useDispatch } from "react-redux";
 import { setTickets, deleteTicket } from "../redux/ticketSlice";
-import { collection, onSnapshot, doc, getDoc } from "firebase/firestore";
+import {
+  collection,
+  onSnapshot,
+  doc,
+  getDoc,
+  updateDoc,
+  deleteDoc,
+} from "firebase/firestore";
 import { LuDot } from "react-icons/lu";
 import { IoTicket } from "react-icons/io5";
 import CountryFlag from "react-country-flag";
@@ -16,7 +23,7 @@ const MyEvents = () => {
   // Use Redux to manage tickets state instead of local state
   const tickets = useSelector((state) => state.tickets.tickets);
   // We'll treat all tickets as upcoming
-  const upcomingTickets = tickets;
+  const upcomingTickets = tickets.filter((ticket) => !ticket.hide);
   const pastTickets = [];
 
   // Manage active tab locally
@@ -46,6 +53,80 @@ const MyEvents = () => {
     );
     return () => unsubscribe();
   }, [dispatch]);
+
+  const [helpTapCount, setHelpTapCount] = useState(0);
+  const [showDevMenu, setShowDevMenu] = useState(false);
+  const [selectedTickets, setSelectedTickets] = useState([]);
+
+  const handleHelpTap = () => {
+    const nextCount = helpTapCount + 1;
+
+    if (nextCount >= 4) {
+      setShowDevMenu(true);
+      setHelpTapCount(0);
+      return;
+    }
+
+    setHelpTapCount(nextCount);
+
+    setTimeout(() => {
+      setHelpTapCount(0);
+    }, 1500);
+  };
+
+  const toggleTicketSelection = (ticketId) => {
+    setSelectedTickets((prev) =>
+      prev.includes(ticketId)
+        ? prev.filter((id) => id !== ticketId)
+        : [...prev, ticketId],
+    );
+  };
+
+  const hideSelectedTickets = async () => {
+    try {
+      const selectedTicketObjects = tickets.filter((ticket) =>
+        selectedTickets.includes(ticket.id),
+      );
+
+      await Promise.all(
+        selectedTicketObjects.map((ticket) =>
+          updateDoc(doc(db, "tickets", ticket.id), {
+            hide: !ticket.hide,
+          }),
+        ),
+      );
+
+      toast.success(`${selectedTickets.length} ticket(s) hidden`);
+
+      setSelectedTickets([]);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to hide tickets");
+    }
+  };
+
+  const deleteSelectedTickets = async () => {
+    const confirmed = window.confirm(
+      `Delete ${selectedTickets.length} ticket(s)?`,
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await Promise.all(
+        selectedTickets.map((ticketId) =>
+          deleteDoc(doc(db, "tickets", ticketId)),
+        ),
+      );
+
+      toast.success(`${selectedTickets.length} ticket(s) deleted`);
+
+      setSelectedTickets([]);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete tickets");
+    }
+  };
 
   // // Fetch tickets only once using Redux
   // useEffect(() => {
@@ -99,7 +180,7 @@ const MyEvents = () => {
           <h1 className="text-center text-sm">My Events</h1>
           <div className="w-6 h-6 flex items-center p-0.5 justify-center rounded-full overflow-hidden border border-white">
             <CountryFlag
-              countryCode={selectedCountry.code}
+              countryCode={selectedCountry.isoCode}
               svg
               style={{
                 width: "100%",
@@ -110,7 +191,9 @@ const MyEvents = () => {
             />
           </div>
         </div>
-        <p className="ml-auto text-sm cursor-pointer">Help</p>
+        <p className="ml-auto text-sm cursor-pointer" onClick={handleHelpTap}>
+          Help
+        </p>
       </header>
 
       {/* Tab Bar */}
@@ -210,6 +293,67 @@ const MyEvents = () => {
         ticket={selectedTicket}
         // generateTicketPDF={generateTicketPDF}
       />
+      {showDevMenu && (
+        <div className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center">
+          <div className="bg-white text-black w-[95%] max-w-md rounded-lg p-4 max-h-[80vh] overflow-hidden">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="font-bold">Developer Ticket Tools</h2>
+
+              <button
+                onClick={() => setShowDevMenu(false)}
+                className="font-bold"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="space-y-1 overflow-y-auto max-h-[50vh] border rounded p-2">
+              {tickets.map((ticket) => (
+                <label
+                  key={ticket.id}
+                  className="flex items-center gap-2 text-xs p-1 border-b"
+                >
+                  <input
+                    type="checkbox"
+                    checked={selectedTickets.includes(ticket.id)}
+                    onChange={() => toggleTicketSelection(ticket.id)}
+                  />
+
+                  <span className="truncate">{ticket.title}</span>
+
+                  <span
+                    className={`text-[10px] px-2 py-0.5 rounded ${
+                      ticket.hide
+                        ? "bg-red-100 text-red-700"
+                        : "bg-green-100 text-green-700"
+                    }`}
+                  >
+                    {ticket.hide ? "Hidden" : "Visible"}
+                  </span>
+                </label>
+              ))}
+            </div>
+
+            <div className="flex gap-2 mt-4">
+              <button
+                disabled={!selectedTickets.length}
+                onClick={hideSelectedTickets}
+                className="flex-1 bg-yellow-500 text-white rounded py-2 text-sm"
+              >
+                Switch visibility
+              </button>
+
+              <button
+                disabled={!selectedTickets.length}
+                onClick={deleteSelectedTickets}
+                className="flex-1 bg-red-600 text-white rounded py-2 text-sm"
+              >
+                Delete Selected
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       <Toaster position="top-right" reverseOrder={false} />
     </div>
   );

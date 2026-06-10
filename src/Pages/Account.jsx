@@ -23,6 +23,8 @@ import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchUser, updateUser } from "../redux/userSlice";
 
+import { Country, City } from "country-state-city";
+
 const Account = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -42,66 +44,11 @@ const Account = () => {
   const [locationBasedContent, setLocationBasedContent] = useState(false);
 
   // Cities & Countries arrays
-  const cities = [
-    "Los Angeles, CA",
-    "New York, NY",
-    "Chicago, IL",
-    "Houston, TX",
-    "Phoenix, AZ",
-    "Philadelphia, PA",
-    "San Antonio, TX",
-    "San Diego, CA",
-    "Dallas, TX",
-    "San Jose, CA",
-    "Austin, TX",
-    "Jacksonville, FL",
-    "Fort Worth, TX",
-    "Columbus, OH",
-    "San Francisco, CA",
-    "Charlotte, NC",
-    "Indianapolis, IN",
-    "Seattle, WA",
-    "Denver, CO",
-    "Washington D.C.",
-  ];
-  const countries = [
-    { code: "US", name: "United States" },
-    { code: "GB", name: "United Kingdom" },
-    { code: "CA", name: "Canada" },
-    { code: "FR", name: "France" },
-    { code: "DE", name: "Germany" },
-    { code: "IT", name: "Italy" },
-    { code: "ES", name: "Spain" },
-    { code: "AU", name: "Australia" },
-    { code: "BR", name: "Brazil" },
-    { code: "CN", name: "China" },
-    { code: "IN", name: "India" },
-    { code: "JP", name: "Japan" },
-    { code: "MX", name: "Mexico" },
-    { code: "RU", name: "Russia" },
-    { code: "ZA", name: "South Africa" },
-    { code: "NG", name: "Nigeria" },
-    { code: "EG", name: "Egypt" },
-    { code: "TR", name: "Turkey" },
-    { code: "KR", name: "South Korea" },
-    { code: "SA", name: "Saudi Arabia" },
-    { code: "AE", name: "United Arab Emirates" },
-    { code: "CH", name: "Switzerland" },
-    { code: "SE", name: "Sweden" },
-    { code: "NO", name: "Norway" },
-    { code: "FI", name: "Finland" },
-    { code: "PL", name: "Poland" },
-    { code: "GR", name: "Greece" },
-    { code: "NL", name: "Netherlands" },
-    { code: "AR", name: "Argentina" },
-    { code: "CL", name: "Chile" },
-  ];
+  const [countries, setCountries] = useState([]);
+  const [cities, setCities] = useState([]);
 
-  const [selectedCity, setSelectedCity] = useState("Los Angeles, CA");
-  const [selectedCountry, setSelectedCountry] = useState({
-    code: "US",
-    name: "United States",
-  });
+  const [selectedCountry, setSelectedCountry] = useState(null);
+  const [selectedCity, setSelectedCity] = useState("");
   const [showCityDropdown, setShowCityDropdown] = useState(false);
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [showFavoriteInput, setShowFavoriteInput] = useState(false);
@@ -137,30 +84,110 @@ const Account = () => {
     if (userData) {
       setNewName(userData.name || "New User");
       setNewEmail(userData.email || user.email);
-      setSelectedCity(userData.location || "Los Angeles, CA");
-      setSelectedCountry(
-        userData.country || { code: "US", name: "United States" }
-      );
+
+      if (userData.location) {
+        setSelectedCity(userData.location);
+      }
+
+      if (userData.country?.isoCode) {
+        setSelectedCountry(userData.country);
+      } else {
+        const usa = Country.getAllCountries().find((c) => c.isoCode === "US");
+
+        if (usa) {
+          setSelectedCountry(usa);
+        }
+      }
     }
   }, [userData, user]);
 
+  useEffect(() => {
+    const allCountries = Country.getAllCountries();
+
+    setCountries(allCountries);
+  }, []);
+
+  useEffect(() => {
+    if (!selectedCountry) return;
+
+    const countryCities = City.getCitiesOfCountry(selectedCountry.isoCode);
+
+    setCities(
+      (countryCities || []).filter(
+        (city, index, self) =>
+          index ===
+          self.findIndex(
+            (c) =>
+              c.name === city.name &&
+              c.latitude === city.latitude &&
+              c.longitude === city.longitude,
+          ),
+      ),
+    );
+
+    if (!selectedCity && countryCities && countryCities.length > 0) {
+      setSelectedCity(countryCities[0].name);
+    }
+  }, [selectedCountry]);
+
   // Update city in Firestore
+  // const handleSelectCity = async (city) => {
+  //   setSelectedCity(city);
+  //   setShowCityDropdown(false);
+  //   if (user) {
+  //     const userRef = doc(db, "users", user.uid);
+  //     await updateDoc(userRef, { location: city });
+  //   }
+  // };
+
   const handleSelectCity = async (city) => {
-    setSelectedCity(city);
+    setSelectedCity(city.name);
     setShowCityDropdown(false);
+
     if (user) {
       const userRef = doc(db, "users", user.uid);
-      await updateDoc(userRef, { location: city });
+
+      await updateDoc(userRef, {
+        location: city.name,
+      });
+      dispatch(
+        updateUser({
+          uid: user.uid,
+          location: city.name,
+        }),
+      );
     }
   };
 
   // Update country in Firestore
+  // const handleSelectCountry = async (countryObj) => {
+  //   setSelectedCountry(countryObj);
+  //   setShowCountryDropdown(false);
+  //   if (user) {
+  //     const userRef = doc(db, "users", user.uid);
+  //     await updateDoc(userRef, { country: countryObj, location: "" });
+  //   }
+  // };
+
   const handleSelectCountry = async (countryObj) => {
     setSelectedCountry(countryObj);
+    setSelectedCity("");
     setShowCountryDropdown(false);
+
     if (user) {
       const userRef = doc(db, "users", user.uid);
-      await updateDoc(userRef, { country: countryObj });
+
+      await updateDoc(userRef, {
+        country: countryObj,
+        location: "",
+      });
+      dispatch(
+        updateUser({
+          uid: user.uid,
+          country: countryObj,
+          location: "",
+        }),
+      );
     }
   };
 
@@ -280,42 +307,12 @@ const Account = () => {
             NEW!
           </span>
         </h3>
-        <div className="flex justify-between items-center px-2 py-3">
-          <div className="flex items-center gap-3">
-            <GrMapLocation className="text-xl" />
-            <p>My Location</p>
-          </div>
-          <div className="flex items-center gap-2 relative">
-            <span className="text-blue-600 font-semibold text-base">
-              {selectedCity}
-            </span>
-            <BiEdit
-              className="text-customBlue text-xl cursor-pointer"
-              onClick={() => {
-                setShowCityDropdown(!showCityDropdown);
-                setShowCountryDropdown(false);
-              }}
-            />
-            {showCityDropdown && (
-              <div className="absolute right-0 top-8 w-48 bg-white text-black border border-gray-300 rounded-lg shadow-lg z-50 overflow-hidden">
-                {cities.map((city) => (
-                  <div
-                    key={city}
-                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
-                    onClick={() => handleSelectCity(city)}
-                  >
-                    {city}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+
         <div className="flex justify-between items-center px-2 py-3 relative">
           <div className="flex items-center gap-3">
             <div className="w-6 h-6 flex items-center p-0.5 justify-center rounded-full overflow-hidden border border-white">
               <CountryFlag
-                countryCode={selectedCountry.code}
+                countryCode={selectedCountry?.isoCode}
                 svg
                 style={{
                   width: "100%",
@@ -329,7 +326,7 @@ const Account = () => {
           </div>
           <div className="flex items-center gap-2 relative">
             <span className="text-blue-600 font-semibold">
-              {selectedCountry.name}
+              {selectedCountry?.name || "Select Country"}
             </span>
             <BiEdit
               className="text-customBlue text-xl cursor-pointer"
@@ -339,15 +336,15 @@ const Account = () => {
               }}
             />
             {showCountryDropdown && (
-              <div className="absolute right-0 top-8 w-52 bg-white text-black border border-gray-300 rounded-lg shadow-lg z-50 overflow-hidden">
+              <div className="absolute right-0 top-8 w-48 h-90 bg-white text-black border border-gray-300 rounded-lg shadow-lg z-50 overflow-y-auto no-scrollbar">
                 {countries.map((c) => (
                   <div
-                    key={c.code}
+                    key={c.isoCode}
                     className="flex items-center gap-2 px-3 py-2 hover:bg-gray-100 cursor-pointer"
                     onClick={() => handleSelectCountry(c)}
                   >
                     <CountryFlag
-                      countryCode={c.code}
+                      countryCode={c.isoCode}
                       svg
                       style={{
                         width: "1.25em",
@@ -356,6 +353,43 @@ const Account = () => {
                       }}
                     />
                     <span className="text-sm">{c.name}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+        <div className="flex justify-between items-center px-2 py-3">
+          <div className="flex items-center gap-3">
+            <GrMapLocation className="text-xl" />
+            <p>My Location</p>
+          </div>
+          <div className="flex items-center gap-2 relative">
+            <span className="text-blue-600 font-semibold text-base">
+              {selectedCity || "City"}
+            </span>
+            <BiEdit
+              className={`text-xl ${
+                selectedCountry
+                  ? "text-customBlue cursor-pointer"
+                  : "text-gray-400 cursor-not-allowed"
+              }`}
+              onClick={() => {
+                if (!selectedCountry) return;
+
+                setShowCityDropdown(!showCityDropdown);
+                setShowCountryDropdown(false);
+              }}
+            />
+            {showCityDropdown && (
+              <div className="absolute right-0 top-8 w-48 h-76 bg-white text-black border border-gray-300 rounded-lg shadow-lg z-50 overflow-y-auto no-scrollbar">
+                {cities.map((city) => (
+                  <div
+                    key={`${city.countryCode}-${city.name}-${city.latitude}-${city.longitude}`}
+                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => handleSelectCity(city)}
+                  >
+                    {city.name}
                   </div>
                 ))}
               </div>
