@@ -248,11 +248,11 @@ const MyEvents = () => {
                 </div>
               </div>
               <div className="w-full text-white">
-                <div className="bg-neutral-800 border border-neutral-800 px-4 pt-2 pb-1 w-full capitalize text-[24px] font-extrabold">
+                <div className="bg-neutral-800 border border-neutral-800 px-4 pt-2 pb-1 w-full capitalize text-[1.5rem] font-extrabold">
                   {" "}
                   {ticket.title}
                 </div>
-                <div className="bg-neutral-800 border border-neutral-800 px-4 pb-4.5 w-full capitalize text-[14px] font-light flex items-center justify-between">
+                <div className="bg-neutral-800 border border-neutral-800 px-4 pb-4.5 w-full capitalize text-[0.875rem] font-light flex items-center justify-between">
                   {ticket.location}
                   <p className="font-bold text-lg flex items-center justify-items-end">
                     <svg
@@ -326,7 +326,7 @@ const MyEvents = () => {
                   </div>
 
                   <span
-                    className={`text-[10px] px-2 py-0.5 rounded ${
+                    className={`text-[0.625rem] px-2 py-0.5 rounded ${
                       ticket.hide
                         ? "bg-red-100 text-red-700"
                         : "bg-green-100 text-green-700"

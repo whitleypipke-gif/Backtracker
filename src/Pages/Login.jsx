@@ -73,19 +73,19 @@ const Login = () => {
     <>
       <div className="flex flex-col items-center justify-center text-black bg-white my-14 mx-5">
         <div className="w-full max-w-md">
-          <h1 className="text-[23px] w-full max-w-md text-left font-bold mb-5">
+          <h1 className="text-[1.4375rem] w-full max-w-md text-left font-bold mb-5">
             SIGN IN OR CREATE ACCOUNT
           </h1>
         </div>
         <div>
-          <h3 className="text-lg text-left mb-8 text-[17px]">
+          <h3 className="text-lg text-left mb-8 text-[1.0625rem]">
             If you don't have an account you will be prompted to create one.
           </h3>
         </div>
         <div className="w-full max-w-md mb-12">
           <label
             htmlFor="emailInput"
-            className="block text-left text-[14.5px] mb-1.5 text-neutral-500"
+            className="block text-left text-[0.9063rem] mb-1.5 text-neutral-500"
           >
             Email Address
           </label>
@@ -95,13 +95,13 @@ const Login = () => {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             id="emailInput"
-            className="border rounded-[3.5px] w-full max-w-md h-11 border-neutral-500 outline-customBlue p-2"
+            className="border rounded-[0.2188rem] w-full max-w-md h-11 border-neutral-500 outline-customBlue p-2"
           />
           {(emailExists || email == "Usegen@ticket.com") && (
             <div className="w-full max-w-md transition-all duration-600 ease-in-out">
               <label
                 htmlFor="passwordInput"
-                className="block text-left text-[14.5px] mt-3 mb-1.5 text-neutral-500"
+                className="block text-left text-[0.9063rem] mt-3 mb-1.5 text-neutral-500"
               >
                 Password
               </label>
@@ -111,14 +111,14 @@ const Login = () => {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 id="passwordInput"
-                className="border rounded-[3.5px] w-full max-w-md h-11 border-neutral-500 outline-customBlue p-2"
+                className="border rounded-[0.2188rem] w-full max-w-md h-11 border-neutral-500 outline-customBlue p-2"
               />
             </div>
           )}
         </div>
         <div className="w-full max-w-md">
           <button
-            className={`mb-4 ${((emailRegex.test(email) && !(emailExists || email == "Usegen@ticket.com")) || ((emailExists || email == "Usegen@ticket.com") && password !== "")) && !loading ? "bg-customBlue text-white" : "text-neutral-400 bg-neutral-100"} text-[15px] w-full max-w-md h-11 rounded-[3.5px] font-bold transition-all duration-300 ease-in-out`}
+            className={`mb-4 ${((emailRegex.test(email) && !(emailExists || email == "Usegen@ticket.com")) || ((emailExists || email == "Usegen@ticket.com") && password !== "")) && !loading ? "bg-customBlue text-white" : "text-neutral-400 bg-neutral-100"} text-[0.9375rem] w-full max-w-md h-11 rounded-[0.2188rem] font-bold transition-all duration-300 ease-in-out`}
             onClick={((emailRegex.test(email) && !(emailExists || email == "Usegen@ticket.com")) || ((emailExists || email == "Usegen@ticket.com") && password !== "")) && handleLogin}
             disabled={loading}
           >
@@ -127,23 +127,23 @@ const Login = () => {
         </div>
         <div className="flex w-full max-w-md items-center justify-between mb-4">
           <hr className="text-neutral-300 w-[43%]" />
-          <p className="font-bold text-[12px]">OR</p>
+          <p className="font-bold text-[0.75rem]">OR</p>
           <hr className="text-neutral-300 w-[43%]" />
         </div>
         <div className="w-full max-w-md">
           <button
-            className={`mb-8 text-[15px] w-full max-w-md h-11 rounded-[3.5px] font-bold border border-neutral-400`}
+            className={`mb-8 text-[0.9375rem] w-full max-w-md h-11 rounded-[0.2188rem] font-bold border border-neutral-400`}
           >
             Sign In With A Passkey
           </button>
         </div>
         <div>
-          <p className="text-customBlue font-bold text-[15px] mb-10">
+          <p className="text-customBlue font-bold text-[0.9375rem] mb-10">
             How To Add A Passkey
           </p>
         </div>
         <div>
-          <p className="text-[15px] text-neutral-600">
+          <p className="text-[0.9375rem] text-neutral-600">
             By continuing past this page, I acknowledge that I have read and
             agree to the current{" "}
             <span className="text-customBlue underline font-bold">

@@ -305,12 +305,12 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                   <div
                     ref={ticketRef}
                     key={i}
-                    className="flex-none w-80 h-[494px] rounded-xl relative border-[1.6px] border-gray-300 rounded-t-[14px]"
+                    className="flex-none w-80 h-[30.875rem] rounded-xl relative border-[0.1rem] border-gray-300 rounded-t-[0.875rem]"
                   >
                     <div className="bg-customBlue rounded-t-xl">
                       {/* Top Bar */}
                       <div className="text-white text-xs p-2 flex justify-between items-center">
-                        <psuedo className="w-[18px]" />
+                        <psuedo className="w-[1.125rem]" />
                         <p className="text-xs  opacity-70">
                           {capitalize(ticket.ticketHeader) || "GA"}
                         </p>
@@ -384,7 +384,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                       )}
                       {/* View Ticket Button */}
                       <button
-                        className={`bg-black w-[90%] mx-auto text-white py-2 text-xs mt-4 font-light mb-2 flex items-center justify-center rounded-[1px] ${ticket.gate ? "" : "mt-8"}`}
+                        className={`bg-black w-[90%] mx-auto text-white py-2 text-xs mt-4 font-light mb-2 flex items-center justify-center rounded-[0.0625rem] ${ticket.gate ? "" : "mt-8"}`}
                         // onClick={handleDeleteTicket}
                       >
                         <PiBarcodeLight className="mr-2 text-2xl" />
@@ -392,7 +392,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                       </button>
                       {/* Ticket Details Link */}
                       <p
-                        className="text-neutral-700 text-[14px] text-center font-extrabold mt-5 cursor-pointer"
+                        className="text-neutral-700 text-[0.875rem] text-center font-extrabold mt-5 cursor-pointer"
                         onClick={() => {
                           setIsTransferDetailPageOpen(true);
                         }}
@@ -468,13 +468,13 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
           <div className="w-full h-64 relative">
             <div className="absolute top-0 left-0 w-full flex justify-between items-center text-white px-4 py-3">
               <div
-                className="cursor-pointer bg-neutral-800/50 px-2.5 py-2.5 rounded-full text-[18px] flex items-center justify-center text-white"
+                className="cursor-pointer bg-neutral-800/50 px-2.5 py-2.5 rounded-full text-[1.125rem] flex items-center justify-center text-white"
                 onClick={() => setIsTransferDetailPageOpen(false)}
               >
                 <FaArrowLeft />
               </div>
               <div
-                className="cursor-pointer bg-neutral-800/50 px-4 py-2 rounded-full text-[14px] flex items-center justify-center text-white"
+                className="cursor-pointer bg-neutral-800/50 px-4 py-2 rounded-full text-[0.875rem] flex items-center justify-center text-white"
                 onClick={() => setIsTransferDetailPageOpen(false)}
               >
                 Help
@@ -494,11 +494,11 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
             </div>
           </div>
           <div className="px-4 w-full text-white">
-            <div className="bg-neutral-800 border border-neutral-800 px-4 pt-2 pb-1 w-full capitalize text-[24px] font-extrabold">
+            <div className="bg-neutral-800 border border-neutral-800 px-4 pt-2 pb-1 w-full capitalize text-[1.5rem] font-extrabold">
               {" "}
               {ticket.title}
             </div>
-            <div className="bg-neutral-800 border border-neutral-800 px-4 pb-4.5 w-full capitalize text-[14px] font-light flex items-center justify-between">
+            <div className="bg-neutral-800 border border-neutral-800 px-4 pb-4.5 w-full capitalize text-[0.875rem] font-light flex items-center justify-between">
               {ticket.location}
               <p className="font-bold text-lg flex items-center justify-items-end">
                 <svg
@@ -520,9 +520,9 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                 </p>
               </p>
             </div>
-            <div className="bg-customBlue py-3 w-full capitalize text-[15px] flex items-center justify-center font-medium">
+            <div className="bg-customBlue py-3 w-full capitalize text-[0.9375rem] flex items-center justify-center font-medium">
               <p className="flex items-center justify-center">
-                <PiBarcodeLight className="text-[28px]" />
+                <PiBarcodeLight className="text-[1.75rem]" />
                 <span className="ml-1"></span>
                 View Tickets
               </p>
@@ -538,7 +538,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
               >
                 Tickets
                 <div
-                  className={`absolute bottom-0 w-full ${activeTab === "tickets" ? "text-gray-900 border-gray-900 border-b-4" : "text-gray-700 border-gray-400 border-b-[3px]"}`}
+                  className={`absolute bottom-0 w-full ${activeTab === "tickets" ? "text-gray-900 border-gray-900 border-b-4" : "text-gray-700 border-gray-400 border-b-[0.1875rem]"}`}
                 ></div>
               </div>
               <div
@@ -548,7 +548,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
               >
                 Extras
                 <div
-                  className={`absolute bottom-0 w-full ${activeTab === "extras" ? "text-gray-900 border-gray-900 border-b-4" : "text-gray-700 border-gray-400 border-b-[3px]"}`}
+                  className={`absolute bottom-0 w-full ${activeTab === "extras" ? "text-gray-900 border-gray-900 border-b-4" : "text-gray-700 border-gray-400 border-b-[0.1875rem]"}`}
                 ></div>
               </div>
             </div>
@@ -559,7 +559,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                     <h3 className="text-lg text-gray-900 font-bold">
                       Order #29-{ticket.id}/PGR
                     </h3>
-                    <p className="text-gray-400 text-[15px]">
+                    <p className="text-gray-400 text-[0.9375rem]">
                       x{quantityNumber} Tickets
                     </p>
                   </div>
@@ -587,7 +587,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                           <p className="font-bold text-gray-600 text-sm mb-1">
                             SECTION
                           </p>
-                          <p className="text-gray-800 font-extrabold text-[15px]">
+                          <p className="text-gray-800 font-extrabold text-[0.9375rem]">
                             {ticket.section}
                           </p>
                         </div>
@@ -595,7 +595,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                           <p className="font-bold text-gray-600 text-sm mb-1">
                             ROW
                           </p>
-                          <p className="text-gray-800 font-extrabold text-[15px]">
+                          <p className="text-gray-800 font-extrabold text-[0.9375rem]">
                             {ticket.row || "--"}
                           </p>
                         </div>
@@ -603,7 +603,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                           <p className="font-bold text-gray-600 text-sm mb-1">
                             SEAT
                           </p>
-                          <p className="text-gray-800 font-extrabold text-[15px]">
+                          <p className="text-gray-800 font-extrabold text-[0.9375rem]">
                             {dynamicSeat || "--"}
                           </p>
                         </div>
@@ -622,12 +622,12 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                 className="flex flex-col items-center justify-center w-full h-full"
                 onClick={() => setIsTransferOpen(true)}
               >
-                <GoArrowUpRight className={`text-[28px]  text-customBlue`} />
-                <p className="text-[12px] font-medium">Transfer</p>
+                <GoArrowUpRight className={`text-[1.75rem]  text-customBlue`} />
+                <p className="text-[0.75rem] font-medium">Transfer</p>
               </div>
-              <div className="flex flex-col items-center justify-center w-full h-full border-l-[0.2px] border-gray-300 text-neutral-400">
-                <FaRotate className={`text-[22px] mb-1.5`} />
-                <p className="text-[12px] font-medium">Sell</p>
+              <div className="flex flex-col items-center justify-center w-full h-full border-l-[0.0125rem] border-gray-300 text-neutral-400">
+                <FaRotate className={`text-[1.375rem] mb-1.5`} />
+                <p className="text-[0.75rem] font-medium">Sell</p>
               </div>
             </div>
           </div>
@@ -976,7 +976,7 @@ function TransferDetailModal({
               <textarea
                 value={note}
                 onChange={(e) => setNote(e.target.value)}
-                className="w-full border border-gray-400 rounded text-[16px] px-3 py-2 h-20 outline-none resize-none"
+                className="w-full border border-gray-400 rounded text-[1rem] px-3 py-2 h-20 outline-none resize-none"
               />
             </div>
           </div>

@@ -8,7 +8,7 @@ const MapComponent = ({ lat, lng,   defaultPosition = [51.5030, 0.0032] }) => {
       ? [lat, lng]
       : defaultPosition;
   return (
-    <div className="h-[400px] w-full rounded-xl z-10">
+    <div className="h-[25rem] w-full rounded-xl z-10">
       <MapContainer
         center={position}
         zoomControl={false}
