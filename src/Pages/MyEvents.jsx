@@ -318,8 +318,12 @@ const MyEvents = () => {
                     checked={selectedTickets.includes(ticket.id)}
                     onChange={() => toggleTicketSelection(ticket.id)}
                   />
-
-                  <span className="truncate">{ticket.title}</span>
+                  <div className="flex flex-col">
+                    <span className="truncate">{ticket.title}</span>
+                    <span>
+                      {ticket.dateTime} -- "{ticket.quantity} tickets" -- {ticket.location}
+                    </span>
+                  </div>
 
                   <span
                     className={`text-[10px] px-2 py-0.5 rounded ${
