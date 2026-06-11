@@ -2,6 +2,8 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import tailwindcss from "@tailwindcss/vite";
+
+const APP_VERSION = "2.4.0"
 // https://vite.dev/config/
 export default defineConfig({
   base: "/",
@@ -17,6 +19,7 @@ export default defineConfig({
       manifest: {
         name: "TicketMaster",
         short_name: "TicketMaster",
+        version: APP_VERSION,
         start_url: "/",
         display: "standalone",
         theme_color: "#121212",

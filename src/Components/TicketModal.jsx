@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import Modal from "react-modal";
 import { gsap } from "gsap";
 import { MdInfo, MdInfoOutline, MdOutlineClose } from "react-icons/md";
@@ -143,7 +143,21 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
     }
   };
 
-  // Refs for animating the modals
+  useEffect(() => {
+    const handlePopState = (event) => {
+      const state = event.state;
+
+      setIsTransferDetailPageOpen(Boolean(state?.ticketDetails));
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      console.log(window.history.state);
+    };
+  }, []);
+
   const mainModalRef = useRef(null);
   const transferModalRef = useRef(null);
   const transferDetailModalRef = useRef(null);
@@ -253,8 +267,20 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
     },
   };
 
-
-  
+  const ticketDetailsModalStyles = {
+    content: {
+      inset: 0,
+      padding: 0,
+      border: "none",
+      borderRadius: 0,
+      background: "transparent",
+      overflow: "hidden",
+    },
+    overlay: {
+      backgroundColor: "transparent",
+      zIndex: 10000,
+    },
+  };
 
   const capitalize = (str) => {
     return str
@@ -403,7 +429,17 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                       <p
                         className="text-neutral-700 text-[0.875rem] text-center font-extrabold mt-5 cursor-pointer"
                         onClick={() => {
-                          setIsTransferDetailPageOpen(true);
+                          if (!isTransferDetailPageOpen) {
+                            window.history.pushState(
+                              {
+                                ...window.history.state,
+                                ticketDetails: true,
+                              },
+                              "",
+                            );
+
+                            setIsTransferDetailPageOpen(true);
+                          }
                         }}
                       >
                         Ticket Details
@@ -465,28 +501,24 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
       <Modal
         isOpen={isTransferDetailPageOpen}
         onAfterOpen={afterOpenTransferModal}
-        onRequestClose={async () => {
-          await beforeCloseTransferModal();
-          setIsTransferDetailPageOpen(false);
+        onRequestClose={() => {
+          window.history.back();
         }}
-        style={transferModalStyles}
+        style={ticketDetailsModalStyles}
         ariaHideApp={false}
       >
-        <div
-          className="h-screen mt-5 relative overflow-y-auto"
-          ref={transferModalRef}
-        >
+        <div ref={transferModalRef} className="bg-white h-full overflow-y-auto">
           <div className="w-full h-64 relative">
             <div className="absolute top-0 left-0 w-full flex justify-between items-center text-white px-4 py-3">
               <div
                 className="cursor-pointer bg-neutral-800/50 px-2.5 py-2.5 rounded-full text-[1.125rem] flex items-center justify-center text-white"
-                onClick={() => setIsTransferDetailPageOpen(false)}
+                onClick={() => window.history.back()}
               >
                 <FaArrowLeft />
               </div>
               <div
                 className="cursor-pointer bg-neutral-800/50 px-4 py-2 rounded-full text-[0.875rem] flex items-center justify-center text-white"
-                onClick={() => setIsTransferDetailPageOpen(false)}
+                // onClick={() => setIsTransferDetailPageOpen(false)}
               >
                 Help
               </div>

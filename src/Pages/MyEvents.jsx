@@ -55,6 +55,29 @@ const MyEvents = () => {
     return () => unsubscribe();
   }, [dispatch]);
 
+  useEffect(() => {
+    const handlePopState = (event) => {
+      console.log("POPSTATE:", event.state);
+      const state = event.state;
+
+      // Still inside TicketModal
+      if (state?.ticketModal === true) {
+        return;
+      }
+
+      // Actually left TicketModal
+      setShowModal(false);
+      setSelectedTicket(null);
+    };
+
+    window.addEventListener("popstate", handlePopState);
+
+    return () => {
+      window.removeEventListener("popstate", handlePopState);
+      console.log(window.history.state);
+    };
+  }, []);
+
   const [helpTapCount, setHelpTapCount] = useState(0);
   const [showDevMenu, setShowDevMenu] = useState(false);
   const [selectedTickets, setSelectedTickets] = useState([]);
@@ -129,14 +152,6 @@ const MyEvents = () => {
     }
   };
 
-  // // Fetch tickets only once using Redux
-  // useEffect(() => {
-  //   // If there are no tickets yet, fetch them
-  //   if (!tickets || tickets.length === 0) {
-  //     dispatch(fetchTickets());
-  //   }
-  // }, [dispatch, tickets]);
-
   // Fetch user's country from Firestore if user exists
   useEffect(() => {
     if (!user) return;
@@ -166,11 +181,21 @@ const MyEvents = () => {
   const openModal = (ticket) => {
     setSelectedTicket(ticket);
     setShowModal(true);
+
+    window.history.pushState(
+      { ticketModal: true },
+      "",
+      window.location.pathname,
+    );
   };
 
   const closeModal = () => {
     setShowModal(false);
     setSelectedTicket(null);
+
+    if (window.history.state?.ticketModal) {
+      window.history.back();
+    }
   };
 
   const toggleTicketVisibility = async (ticket) => {
@@ -258,7 +283,6 @@ const MyEvents = () => {
               {/* Image + Overlay; clicking calls openModal */}
               <div
                 className="relative  h-48 md:h-48  cursor-pointer"
-                onClick={() => openModal(ticket)}
               >
                 <img
                   src={ticket.coverImage}
