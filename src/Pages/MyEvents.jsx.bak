@@ -361,7 +361,7 @@ const MyEvents = () => {
               placeholder="Search tickets..."
               value={ticketSearch}
               onChange={(e) => setTicketSearch(e.target.value)}
-              className="w-full mb-3 border rounded px-3 py-2 text-[1rem]"
+              className="w-full mb-3 border rounded px-3 py-2 text-[16px]"
             />
             <div className="space-y-1 overflow-y-auto max-h-[50vh] border rounded p-2 mb-3">
               {filteredTickets.map((ticket) => (
@@ -380,7 +380,7 @@ const MyEvents = () => {
                   <div className="flex flex-col flex-1 min-w-0">
                     <span className="truncate font-medium">{ticket.title}</span>
 
-                    <span className="text-[0.6875rem] text-gray-500 truncate">
+                    <span className="text-[11px] text-gray-500 truncate">
                       {ticket.dateTime} • {ticket.quantity} tickets •{" "}
                       {ticket.section || "GA"}
                     </span>
