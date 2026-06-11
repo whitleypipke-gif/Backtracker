@@ -19,7 +19,7 @@ export default defineConfig({
         short_name: "TicketMaster",
         start_url: "/",
         display: "standalone",
-        theme_color: "#024ddf",
+        theme_color: "#121212",
         background_color: "#ffffff",
         icons: [
           {

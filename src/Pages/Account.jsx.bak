@@ -507,7 +507,7 @@ const Account = () => {
             borderRadius: "0.5rem",
             padding: "1.5rem",
             width: "90%",
-            maxWidth: "25rem",
+            maxWidth: "400px",
           },
           overlay: {
             backgroundColor: "rgba(0, 0, 0, 0.5)",

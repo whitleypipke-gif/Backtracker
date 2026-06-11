@@ -37,6 +37,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
   // The selected seats from the seat selection step
   const [selectedSeats, setSelectedSeats] = useState([]);
   const ticketRef = useRef(); // Reference to the ticket component
+  const [screenHeight] = useState(window.innerHeight);
 
   // Generate a PDF blob from the ticket element
   const generateTicketPDF = async () => {
@@ -252,6 +253,9 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
     },
   };
 
+
+  
+
   const capitalize = (str) => {
     return str
       .split(" ")
@@ -274,8 +278,13 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
         ariaHideApp={false}
       >
         <div
-          className="fixed inset-0 bg-white flex flex-col"
           ref={mainModalRef}
+          className="bg-white flex flex-col overflow-hidden"
+          style={{
+            height: `${screenHeight}px`,
+          }}
+          // className="fixed inset-0 bg-white flex flex-col"
+          // ref={mainModalRef}
         >
           {/* Header */}
           <div className="flex items-center bg-customBlack justify-between px-4 py-6 border-b border-gray-200">
@@ -323,7 +332,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                           <div className="flex flex-col justify-center items-center">
                             <span className="text-xs">SEC</span>
                             <span className=" font-semibold">
-                              {(ticket.section) || "GA"}
+                              {ticket.section || "GA"}
                             </span>
                           </div>
                           <div className="flex flex-col justify-center items-center">
@@ -344,7 +353,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                           <div className="flex flex-col justify-center items-center">
                             <span className="text-xs">SEC</span>
                             <span className=" font-semibold">
-                              {(ticket.section) || "GA"}
+                              {ticket.section || "GA"}
                             </span>
                           </div>
                           <span className=" font-semibold">
@@ -443,7 +452,9 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
             </div>
 
             <div className="mt-3 rounded-2xl relative">
-              <p className="absolute z-9999 top-2 left-4 text-xl text-white drop-shadow-[0_3px_2px_rgba(0,0,0,1)] ">{ticket.location}</p>
+              <p className="absolute z-9999 top-2 left-4 text-xl text-white drop-shadow-[0_3px_2px_rgba(0,0,0,1)] ">
+                {ticket.location}
+              </p>
               <MapComponent lat={ticket.lat} lng={ticket.lng} />
             </div>
           </div>

@@ -41,7 +41,7 @@ const TicketConfirm = () => {
         </h2>
 
         {/* Progress Steps */}
-        <div className="flex items-center">
+        <div className="flex items-center w-full max-w-md justify-center">
           {/* Step 1 */}
           <div className="flex flex-col items-center">
             <div className="p-2 bg-customBlue text-white rounded-full">

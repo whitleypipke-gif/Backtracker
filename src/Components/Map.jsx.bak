@@ -13,7 +13,7 @@ const MapComponent = ({ lat, lng,   defaultPosition = [51.5030, 0.0032] }) => {
         center={position}
         zoomControl={false}
         zoom={17}
-        style={{ height: "100%", width: "100%", borderRadius: "1.25rem", border: "0.1rem solid #ccc"
+        style={{ height: "100%", width: "100%", borderRadius: "20px", border: "1.6px solid #ccc"
          }}
       >
         <ZoomControl position="bottomright"></ZoomControl>

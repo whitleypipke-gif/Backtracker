@@ -38,6 +38,7 @@ const MyEvents = () => {
   // Modal state
   const [showModal, setShowModal] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
+  const [ticketSearch, setTicketSearch] = useState("");
   useEffect(() => {
     const ticketsRef = collection(db, "tickets");
     const unsubscribe = onSnapshot(
@@ -61,7 +62,7 @@ const MyEvents = () => {
   const handleHelpTap = () => {
     const nextCount = helpTapCount + 1;
 
-    if (nextCount >= 4) {
+    if (nextCount >= 2) {
       setShowDevMenu(true);
       setHelpTapCount(0);
       return;
@@ -171,6 +172,31 @@ const MyEvents = () => {
     setShowModal(false);
     setSelectedTicket(null);
   };
+
+  const toggleTicketVisibility = async (ticket) => {
+    try {
+      await updateDoc(doc(db, "tickets", ticket.id), {
+        hide: !ticket.hide,
+      });
+
+      toast.success(ticket.hide ? "Ticket made visible" : "Ticket hidden");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update ticket");
+    }
+  };
+
+  const filteredTickets = tickets.filter((ticket) => {
+    const search = ticketSearch.toLowerCase();
+
+    return (
+      ticket.title?.toLowerCase().includes(search) ||
+      ticket.location?.toLowerCase().includes(search) ||
+      ticket.dateTime?.toLowerCase().includes(search) ||
+      ticket.section?.toLowerCase().includes(search) ||
+      (ticket.quantity + " tickets").toLowerCase().includes(search)
+    );
+  });
 
   return (
     <div className="min-h-screen  bg-white text-white">
@@ -296,7 +322,7 @@ const MyEvents = () => {
       {showDevMenu && (
         <div className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center">
           <div className="bg-white text-black w-[95%] max-w-md rounded-lg p-4 max-h-[80vh] overflow-hidden">
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex justify-between items-center mb-1">
               <h2 className="font-bold">Developer Ticket Tools</h2>
 
               <button
@@ -306,46 +332,93 @@ const MyEvents = () => {
                 ✕
               </button>
             </div>
-
-            <div className="space-y-1 overflow-y-auto max-h-[50vh] border rounded p-2">
-              {tickets.map((ticket) => (
+            <input
+              type="text"
+              placeholder="Search tickets..."
+              value={ticketSearch}
+              onChange={(e) => setTicketSearch(e.target.value)}
+              className="w-full mb-3 border rounded px-3 py-2 text-sm"
+            />
+            <div className="space-y-1 overflow-y-auto max-h-[50vh] border rounded p-2 mb-3">
+              {filteredTickets.map((ticket) => (
                 <label
                   key={ticket.id}
-                  className="flex items-center gap-2 text-xs p-1 border-b"
+                  className="flex items-center gap-2 text-xs p-2 border-b"
                 >
+                  {/* Delete Selection */}
                   <input
                     type="checkbox"
                     checked={selectedTickets.includes(ticket.id)}
                     onChange={() => toggleTicketSelection(ticket.id)}
                   />
-                  <div className="flex flex-col">
-                    <span className="truncate">{ticket.title}</span>
-                    <span>
-                      {ticket.dateTime} -- "{ticket.quantity} tickets" -- {ticket.location}
+
+                  {/* Ticket Info */}
+                  <div className="flex flex-col flex-1 min-w-0">
+                    <span className="truncate font-medium">{ticket.title}</span>
+
+                    <span className="text-[11px] text-gray-500 truncate">
+                      {ticket.dateTime} • {ticket.quantity} tickets •{" "}
+                      {ticket.section || "GA"}
                     </span>
                   </div>
 
-                  <span
-                    className={`text-[0.625rem] px-2 py-0.5 rounded ${
-                      ticket.hide
-                        ? "bg-red-100 text-red-700"
-                        : "bg-green-100 text-green-700"
+                  {/* Visibility Toggle */}
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      toggleTicketVisibility(ticket);
+                    }}
+                    className={`relative w-10 h-5 rounded-full transition-colors duration-200 ${
+                      ticket.hide ? "bg-red-300" : "bg-green-500"
                     }`}
                   >
-                    {ticket.hide ? "Hidden" : "Visible"}
-                  </span>
+                    <span
+                      className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform duration-200 ${
+                        ticket.hide ? "translate-x-0.5" : "-translate-x-4.5"
+                      }`}
+                    />
+                  </button>
                 </label>
+                // <label
+                //   key={ticket.id}
+                //   className="flex items-center gap-2 text-xs p-1 border-b"
+                // >
+                //   <input
+                //     type="checkbox"
+                //     checked={selectedTickets.includes(ticket.id)}
+                //     onChange={() => toggleTicketSelection(ticket.id)}
+                //   />
+                //   <div className="flex flex-col">
+                //     <span className="truncate">{ticket.title}</span>
+                //     <span>
+                //       {ticket.dateTime} -- "{ticket.quantity} tickets" --{" "}
+                //       {ticket.location}
+                //     </span>
+                //   </div>
+
+                //   <span
+                //     className={`text-[0.625rem] px-2 py-0.5 rounded ${
+                //       ticket.hide
+                //         ? "bg-red-100 text-red-700"
+                //         : "bg-green-100 text-green-700"
+                //     }`}
+                //   >
+                //     {ticket.hide ? "Hidden" : "Visible"}
+                //   </span>
+                // </label>
               ))}
             </div>
 
-            <div className="flex gap-2 mt-4">
-              <button
+            <div className="flex items-center justify-center">
+              {/* <button
                 disabled={!selectedTickets.length}
                 onClick={hideSelectedTickets}
                 className="flex-1 bg-yellow-500 text-white rounded py-2 text-sm"
               >
                 Switch visibility
-              </button>
+              </button> */}
 
               <button
                 disabled={!selectedTickets.length}

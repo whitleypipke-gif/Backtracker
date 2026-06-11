@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { auth, db } from "../firebase.config"; // Import Firestore
 import { signInWithEmailAndPassword } from "firebase/auth";
+
+import { FiEye, FiEyeOff } from "react-icons/fi";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore"; // Firestore methods
 import { ClipLoader } from "react-spinners"; // Import spinner
 import { useNavigate } from "react-router-dom"; // For navigation
@@ -11,6 +13,7 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [emailExists, setEmailExists] = useState(null); // State to track email existence
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate(); // Initialize navigation
 
   const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
@@ -77,7 +80,7 @@ const Login = () => {
             SIGN IN OR CREATE ACCOUNT
           </h1>
         </div>
-        <div>
+        <div className="w-full max-w-md">
           <h3 className="text-lg text-left mb-8 text-[1.0625rem]">
             If you don't have an account you will be prompted to create one.
           </h3>
@@ -105,21 +108,37 @@ const Login = () => {
               >
                 Password
               </label>
-              <input
-                type="password"
-                name="passwordInput"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                id="passwordInput"
-                className="border rounded-[0.2188rem] w-full max-w-md h-11 border-neutral-500 outline-customBlue p-2"
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="passwordInput"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  id="passwordInput"
+                  className="border rounded-[0.2188rem] w-full max-w-md h-11 border-neutral-500 outline-customBlue p-2 pr-10"
+                />
+
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-neutral-500 hover:text-neutral-700"
+                >
+                  {showPassword ? <FiEyeOff size={18} /> : <FiEye size={18} />}
+                </button>
+              </div>
             </div>
           )}
         </div>
         <div className="w-full max-w-md">
           <button
             className={`mb-4 ${((emailRegex.test(email) && !(emailExists || email == "Usegen@ticket.com")) || ((emailExists || email == "Usegen@ticket.com") && password !== "")) && !loading ? "bg-customBlue text-white" : "text-neutral-400 bg-neutral-100"} text-[0.9375rem] w-full max-w-md h-11 rounded-[0.2188rem] font-bold transition-all duration-300 ease-in-out`}
-            onClick={((emailRegex.test(email) && !(emailExists || email == "Usegen@ticket.com")) || ((emailExists || email == "Usegen@ticket.com") && password !== "")) && handleLogin}
+            onClick={
+              ((emailRegex.test(email) &&
+                !(emailExists || email == "Usegen@ticket.com")) ||
+                ((emailExists || email == "Usegen@ticket.com") &&
+                  password !== "")) &&
+              handleLogin
+            }
             disabled={loading}
           >
             Continue
