@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
 import tailwindcss from "@tailwindcss/vite";
 
-const APP_VERSION = "2.4.0"
+const APP_VERSION = "2.4.1"
 // https://vite.dev/config/
 export default defineConfig({
   base: "/",

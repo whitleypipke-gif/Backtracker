@@ -21,7 +21,7 @@ import html2canvas from "html2canvas-pro";
 import { ClipLoader } from "react-spinners";
 import jsPDF from "jspdf";
 // 1) Firestore addDoc import
-import image from "../assets/wallet.png"
+import image from "../assets/wallet.png";
 import { db } from "../firebase.config";
 import { collection, addDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
@@ -37,7 +37,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
   const [isTransferDetailOpen, setIsTransferDetailOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("tickets");
   const [isViewTicketOpen, setIsViewTicketOpen] = useState(false);
-  const [clickedview, setclickedview] = useState(null)
+  const [clickedview, setclickedview] = useState(null);
 
   // The selected seats from the seat selection step
   const [selectedSeats, setSelectedSeats] = useState([]);
@@ -310,6 +310,21 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
     },
   };
 
+  const viewModalStyles = {
+    content: {
+      inset: 0,
+      padding: 0,
+      border: "none",
+      borderRadius: 0,
+      background: "transparent",
+      overflow: "hidden",
+    },
+    overlay: {
+      backgroundColor: "transparent",
+      zIndex: 11000,
+    },
+  };
+
   const capitalize = (str) => {
     return str
       .split(" ")
@@ -459,7 +474,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                               "",
                             );
 
-                            setclickedview(i + 1)
+                            setclickedview(i + 1);
                             setIsViewTicketOpen(true);
                           }
                         }}
@@ -546,7 +561,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
         onRequestClose={() => {
           window.history.back();
         }}
-        style={ticketDetailsModalStyles}
+        style={viewModalStyles}
         ariaHideApp={false}
         className={` overflow-hidden`}
       >
@@ -641,7 +656,9 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                 </div>
                 <div className="flex flex-col items-center justify-center">
                   <p className="font-extralight text-sm mb-2">SEAT</p>
-                  <p className="font-medium text-xl">{(Number(ticket.seatNumber)+(clickedview - 1))}</p>
+                  <p className="font-medium text-xl">
+                    {Number(ticket.seatNumber) + (clickedview - 1)}
+                  </p>
                 </div>
               </div>
               <div className="w-53 h-53 bg-gradient-to-b via-purple-400 from-purple-600 my-4 rounded-lg p-[0.2rem]">
@@ -655,28 +672,36 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
               {/* <p className="mb-2">{ticket.admissionType}</p> */}
 
               <div className="bg-neutral-800 p-2.5 rounded-sm flex items-center justify-center w-47">
-                <img src={image} alt="" className="w-5 h-4 rounded-xs mr-2"/>
+                <img src={image} alt="" className="w-5 h-4 rounded-xs mr-2" />
                 <p className="text-sm">Add to Wallet</p>
               </div>
             </div>
 
             <div className="absolute bottom-0 w-full h-35 bg-gray-800 flex justify-center">
               <div className="justify-center items-center flex absolute top-2">
-                <GoChevronLeft className="text-[1.85rem]" onClick={() => {
-                  if (clickedview === 1) {
-                    return ;
-                  } else {
-                    setclickedview(clickedview - 1)
-                  }
-                }}/>
-                <p className="font-extralight mx-3">{clickedview} of {ticket.quantity}</p>
-                <GoChevronRight className="text-[1.85rem]"  onClick={() => {
-                  if (clickedview === Number(ticket.quantity)) {
-                    return 
-                  } else {
-                    setclickedview(clickedview + 1)
-                  }
-                }}/>
+                <GoChevronLeft
+                  className="text-[1.85rem]"
+                  onClick={() => {
+                    if (clickedview === 1) {
+                      return;
+                    } else {
+                      setclickedview(clickedview - 1);
+                    }
+                  }}
+                />
+                <p className="font-extralight mx-3">
+                  {clickedview} of {ticket.quantity}
+                </p>
+                <GoChevronRight
+                  className="text-[1.85rem]"
+                  onClick={() => {
+                    if (clickedview === Number(ticket.quantity)) {
+                      return;
+                    } else {
+                      setclickedview(clickedview + 1);
+                    }
+                  }}
+                />
               </div>
             </div>
           </div>
@@ -749,7 +774,23 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                 </p>
               </p>
             </div>
-            <div className="bg-customBlue py-3 w-full capitalize text-[0.9375rem] flex items-center justify-center font-medium">
+            <div
+              className="bg-customBlue py-3 w-full capitalize text-[0.9375rem] flex items-center justify-center font-medium"
+              onClick={() => {
+                if (!isViewTicketOpen) {
+                  window.history.pushState(
+                    {
+                      ...window.history.state,
+                      viewTicket: true,
+                    },
+                    "",
+                  );
+
+                  setclickedview(1);
+                  setIsViewTicketOpen(true);
+                }
+              }}
+            >
               <p className="flex items-center justify-center">
                 <PiBarcodeLight className="text-[1.75rem]" />
                 <span className="ml-1"></span>
