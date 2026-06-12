@@ -2,10 +2,12 @@ import React, { useEffect, useRef, useState } from "react";
 import Modal from "react-modal";
 import { gsap } from "gsap";
 import { MdInfo, MdInfoOutline, MdOutlineClose } from "react-icons/md";
+import Marquee from "react-fast-marquee";
 import { LuDot } from "react-icons/lu";
 import { IoBarcode, IoSend, IoTicket } from "react-icons/io5";
+import { QRCodeSVG } from "qrcode.react";
 import { BsArrowBarLeft, BsInfoCircle, BsUpcScan } from "react-icons/bs";
-import { GoArrowUpRight, GoChevronRight } from "react-icons/go";
+import { GoArrowUpRight, GoChevronLeft, GoChevronRight } from "react-icons/go";
 import { useDispatch } from "react-redux";
 import { deleteTicket } from "../redux/ticketSlice";
 import MapComponent from "./Map";
@@ -19,6 +21,7 @@ import html2canvas from "html2canvas-pro";
 import { ClipLoader } from "react-spinners";
 import jsPDF from "jspdf";
 // 1) Firestore addDoc import
+import image from "../assets/wallet.png"
 import { db } from "../firebase.config";
 import { collection, addDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
@@ -33,6 +36,8 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
     useState(false);
   const [isTransferDetailOpen, setIsTransferDetailOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("tickets");
+  const [isViewTicketOpen, setIsViewTicketOpen] = useState(false);
+  const [clickedview, setclickedview] = useState(null)
 
   // The selected seats from the seat selection step
   const [selectedSeats, setSelectedSeats] = useState([]);
@@ -143,11 +148,34 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
     }
   };
 
+  const marqueeContainerRef = useRef(null);
+  const marqueeContentRef = useRef(null);
+
+  const [isOverflowing, setIsOverflowing] = useState(false);
+
+  useEffect(() => {
+    const checkOverflow = () => {
+      if (marqueeContainerRef.current && marqueeContentRef.current) {
+        setIsOverflowing(
+          marqueeContentRef.current.scrollWidth >
+            marqueeContainerRef.current.clientWidth,
+        );
+      }
+    };
+
+    checkOverflow();
+
+    window.addEventListener("resize", checkOverflow);
+
+    return () => window.removeEventListener("resize", checkOverflow);
+  }, [ticket]);
+
   useEffect(() => {
     const handlePopState = (event) => {
       const state = event.state;
 
       setIsTransferDetailPageOpen(Boolean(state?.ticketDetails));
+      setIsViewTicketOpen(Boolean(state?.viewTicket));
     };
 
     window.addEventListener("popstate", handlePopState);
@@ -421,6 +449,20 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                       <button
                         className={`bg-black w-[90%] mx-auto text-white py-2 text-xs mt-4 font-light mb-2 flex items-center justify-center rounded-[0.0625rem] ${ticket.gate ? "" : "mt-8"}`}
                         // onClick={handleDeleteTicket}
+                        onClick={() => {
+                          if (!isViewTicketOpen) {
+                            window.history.pushState(
+                              {
+                                ...window.history.state,
+                                viewTicket: true,
+                              },
+                              "",
+                            );
+
+                            setclickedview(i + 1)
+                            setIsViewTicketOpen(true);
+                          }
+                        }}
                       >
                         <PiBarcodeLight className="mr-2 text-2xl" />
                         View Ticket
@@ -492,6 +534,150 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                 {ticket.location}
               </p>
               <MapComponent lat={ticket.lat} lng={ticket.lng} />
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* {VIEW TICKET MODAL} */}
+      <Modal
+        isOpen={isViewTicketOpen}
+        onAfterOpen={afterOpenTransferModal}
+        onRequestClose={() => {
+          window.history.back();
+        }}
+        style={ticketDetailsModalStyles}
+        ariaHideApp={false}
+        className={` overflow-hidden`}
+      >
+        <div
+          ref={transferModalRef}
+          className="bg-gray-800 w-full h-full overflow-y-auto text-white overflow-hidden"
+        >
+          <div className="flex items-baseline justify-between px-4 pt-6 pb-2 w-full">
+            <button
+              onClick={() => window.history.back()}
+              className="text-2xl mr-2 mt-auto"
+            >
+              <MdOutlineClose />
+            </button>
+
+            <div className="font-bold truncate relative">
+              <Marquee
+                speed={20}
+                gradient={false}
+                pauseOnHover={false}
+                autoFill
+              >
+                <p className="mr-15 text-sm">{ticket.title}</p>
+              </Marquee>
+
+              {/* Left fade */}
+              <div className="absolute left-0 top-0 bottom-0 w-6 bg-gradient-to-r from-gray-800 to-transparent z-10" />
+
+              {/* Right fade */}
+              <div className="absolute right-0 top-0 bottom-0 w-6 bg-gradient-to-l from-gray-800 to-transparent z-10" />
+
+              <div
+                ref={marqueeContainerRef}
+                className="relative overflow-hidden text-sm text-white font-extralight"
+              >
+                {/* <div
+                  ref={marqueeContentRef}
+                  className="absolute opacity-0 pointer-events-none whitespace-nowrap"
+                >
+                  {ticket.location}
+                  <span className="mx-2">•</span>
+                  {ticket.dateTime}
+                </div> */}
+
+                {!isOverflowing ? (
+                  <>
+                    <Marquee
+                      speed={20}
+                      gradient={false}
+                      pauseOnHover={false}
+                      autoFill
+                    >
+                      <span className="mr-8 flex items-center">
+                        {ticket.location}
+                        <LuDot className="mx-1" />
+                        {ticket.dateTime}
+                      </span>
+                    </Marquee>
+                  </>
+                ) : (
+                  <div className="truncate flex items-center">
+                    {ticket.location}
+                    <LuDot className="mx-1" />
+                    {ticket.dateTime}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <button className="font-bold shrink-0 mt-auto ml-3">Help</button>
+          </div>
+
+          <div
+            className="h-dvh bg-cover bg-center flex flex-col items-center justify-center bg-no-repeat relative"
+            style={{
+              backgroundImage: `url(${ticket.coverImage})`,
+            }}
+          >
+            <div className="-translate-y-20 flex flex-col items-center w-[68%] drop-shadow-[0_1px_2px_rgba(0,0,0,1)] ">
+              <p className="font-bold text-xl mb-6">Seat Reservation</p>
+              <div className="flex items-baseline justify-between w-[100%]">
+                <div className="flex flex-col items-center justify-center">
+                  <p className="font-extralight text-sm">SEC</p>
+                  <p className="flex flex-col items-center justify-center font-medium text-xl">
+                    <span>Sector</span>
+                    {ticket.section}
+                  </p>
+                </div>
+                <div className="flex flex-col items-center justify-center">
+                  <p className="font-extralight text-sm mb-2">ROW</p>
+                  <p className="font-medium text-xl">{ticket.row}</p>
+                </div>
+                <div className="flex flex-col items-center justify-center">
+                  <p className="font-extralight text-sm mb-2">SEAT</p>
+                  <p className="font-medium text-xl">{(Number(ticket.seatNumber)+(clickedview - 1))}</p>
+                </div>
+              </div>
+              <div className="w-53 h-53 bg-gradient-to-b via-purple-400 from-purple-600 my-4 rounded-lg p-[0.2rem]">
+                <div className="w-full h-full bg-white rounded-lg p-2">
+                  <QRCodeSVG
+                    value={`${ticket.seatNumber}${ticket.dateTime}${ticket.id}${clickedview}`}
+                    className="w-full h-full"
+                  />
+                </div>
+              </div>
+              {/* <p className="mb-2">{ticket.admissionType}</p> */}
+
+              <div className="bg-neutral-800 p-2.5 rounded-sm flex items-center justify-center w-47">
+                <img src={image} alt="" className="w-5 h-4 rounded-xs mr-2"/>
+                <p className="text-sm">Add to Wallet</p>
+              </div>
+            </div>
+
+            <div className="absolute bottom-0 w-full h-35 bg-gray-800 flex justify-center">
+              <div className="justify-center items-center flex absolute top-2">
+                <GoChevronLeft className="text-[1.85rem]" onClick={() => {
+                  if (clickedview === 1) {
+                    return ;
+                  } else {
+                    setclickedview(clickedview - 1)
+                  }
+                }}/>
+                <p className="font-extralight mx-3">{clickedview} of {ticket.quantity}</p>
+                <GoChevronRight className="text-[1.85rem]"  onClick={() => {
+                  if (clickedview === Number(ticket.quantity)) {
+                    return 
+                  } else {
+                    setclickedview(clickedview + 1)
+                  }
+                }}/>
+              </div>
             </div>
           </div>
         </div>
@@ -990,7 +1176,7 @@ function TransferDetailModal({
                 type="text"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
-                className="w-full border border-gray-400 rounded px-3 py-2"
+                className="w-full border border-gray-400 rounded px-3 py-2 text-[1rem]"
               />
             </div>
 
@@ -1000,7 +1186,7 @@ function TransferDetailModal({
                 type="text"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
-                className="w-full border border-gray-400 rounded px-3 py-2"
+                className="w-full border border-gray-400 rounded px-3 py-2 text-[1rem]"
               />
             </div>
 
@@ -1010,7 +1196,7 @@ function TransferDetailModal({
                 type="text"
                 value={emailOrMobile}
                 onChange={(e) => setEmailOrMobile(e.target.value)}
-                className="w-full border border-gray-400 rounded px-3 py-2"
+                className="w-full border border-gray-400 rounded px-3 py-2 text-[1rem]"
               />
             </div>
 

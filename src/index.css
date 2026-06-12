@@ -7,6 +7,18 @@
   --color-customGray: #949494;
   --font-custom: "Mulish", sans-serif;
   --color-customBlue: rgb(2, 75, 222);
+
+  --animate-marquee: marquee 12s linear infinite;
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+
+    to {
+      transform: translateX(-50%);
+    }
+  }
 }
 
 body {
