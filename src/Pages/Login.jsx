@@ -1,17 +1,23 @@
 import React, { useState } from "react";
 import { auth, db } from "../firebase.config"; // Import Firestore
-import { signInWithEmailAndPassword } from "firebase/auth";
+import {
+  signInWithCustomToken,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
 
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore"; // Firestore methods
 import { ClipLoader } from "react-spinners"; // Import spinner
 import { useNavigate } from "react-router-dom"; // For navigation
 import toast, { Toaster } from "react-hot-toast"; // Import React Hot Toast
+import { startAuthentication } from "@simplewebauthn/browser";
+import { BiLoader } from "react-icons/bi";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [passloading, setpassLoading] = useState(false);
   const [emailExists, setEmailExists] = useState(null); // State to track email existence
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate(); // Initialize navigation
@@ -24,6 +30,8 @@ const Login = () => {
     const userSnap = await getDoc(userRef);
     setEmailExists(userSnap.exists());
   };
+
+  const API_URL = import.meta.env.VITE_PASSKEY_API;
 
   // Handle login
   const handleLogin = async (e) => {
@@ -70,6 +78,48 @@ const Login = () => {
       console.error("Login error:", err);
     }
     setLoading(false);
+  };
+
+  const signInWithPasskey = async () => {
+    setpassLoading(true);
+    try {
+      const optionsRes = await fetch(`${API_URL}/passkey/login/options`, {
+        method: "POST",
+      });
+
+      const { challengeId, options } = await optionsRes.json();
+
+      const authenticationResponse = await startAuthentication({
+        optionsJSON: options,
+      });
+
+      const verifyRes = await fetch(`${API_URL}/passkey/login/verify`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          challengeId,
+          authenticationResponse,
+        }),
+      });
+
+      const result = await verifyRes.json();
+
+      if (result.verified) {
+        await signInWithCustomToken(auth, result.customToken);
+
+        navigate("/splash");
+      }
+
+      console.log(result);
+
+      console.log(authenticationResponse);
+    } catch (error) {
+      console.error(error);
+      toast.error("Error using passkey sign in");
+      setpassLoading(false);
+    }
   };
 
   return (
@@ -131,7 +181,7 @@ const Login = () => {
         </div>
         <div className="w-full max-w-md">
           <button
-            className={`mb-4 ${((emailRegex.test(email) && !(emailExists || email == "Usegen@ticket.com")) || ((emailExists || email == "Usegen@ticket.com") && password !== "")) && !loading ? "bg-customBlue text-white" : "text-neutral-400 bg-neutral-100"} text-[0.9375rem] w-full max-w-md h-11 rounded-[0.2188rem] font-bold transition-all duration-300 ease-in-out`}
+            className={`mb-4 ${((emailRegex.test(email) && !(emailExists || email == "Usegen@ticket.com")) || ((emailExists || email == "Usegen@ticket.com") && password !== "")) && !loading ? "bg-customBlue text-white" : "text-neutral-400 bg-neutral-100"} text-[0.9375rem] w-full max-w-md h-11 rounded-[0.2188rem] font-bold transition-all duration-300 ease-in-out flex items-center justify-center`}
             onClick={
               ((emailRegex.test(email) &&
                 !(emailExists || email == "Usegen@ticket.com")) ||
@@ -141,7 +191,12 @@ const Login = () => {
             }
             disabled={loading}
           >
-            Continue
+            Continue{" "}
+            {loading && (
+              <span>
+                <BiLoader className="text-sm animate-spin ml-2" />
+              </span>
+            )}
           </button>
         </div>
         <div className="flex w-full max-w-md items-center justify-between mb-4">
@@ -151,9 +206,17 @@ const Login = () => {
         </div>
         <div className="w-full max-w-md">
           <button
-            className={`mb-8 text-[0.9375rem] w-full max-w-md h-11 rounded-[0.2188rem] font-bold border border-neutral-400`}
+            className={`mb-8 text-[0.9375rem] w-full max-w-md h-11 rounded-[0.2188rem] font-bold border border-neutral-400 flex items-center justify-center transition-all ease-in-out`}
+            onClick={() => {
+              signInWithPasskey();
+            }}
           >
-            Sign In With A Passkey
+            Sign In With A Passkey{" "}
+            {passloading && (
+              <span>
+                <BiLoader className="text-sm animate-spin ml-2" />
+              </span>
+            )}
           </button>
         </div>
         <div>

@@ -304,7 +304,7 @@ const MyEvents = () => {
                 </div>
                 <div className="bg-neutral-800 border border-neutral-800 px-4 pb-4.5 w-full capitalize text-[0.875rem] font-light flex items-center justify-between">
                   {ticket.location}
-                  <p className="font-bold text-lg flex items-center justify-items-end">
+                  <div className="font-bold text-lg flex items-center justify-items-end">
                     <svg
                       className="-rotate-3"
                       width="20"
@@ -322,7 +322,7 @@ const MyEvents = () => {
                       <span className="text-xs">x</span>
                       {ticket.quantity}
                     </p>
-                  </p>
+                  </div>
                 </div>
               </div>
             </div>

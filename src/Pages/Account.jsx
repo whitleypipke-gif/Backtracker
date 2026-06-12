@@ -16,14 +16,17 @@ import { SlBookOpen } from "react-icons/sl";
 import Modal from "react-modal";
 import toast from "react-hot-toast";
 // Firestore imports
-import { db } from "../firebase.config";
+import { db, auth } from "../firebase.config";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 // Redux imports for user management
 import { useSelector, useDispatch } from "react-redux";
 import { fetchUser, updateUser } from "../redux/userSlice";
 
+import { startRegistration } from "@simplewebauthn/browser";
+
 import { Country, City } from "country-state-city";
+import { HiOutlineKey } from "react-icons/hi2";
 
 const Account = () => {
   const { user, logout } = useAuth();
@@ -53,6 +56,55 @@ const Account = () => {
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [showFavoriteInput, setShowFavoriteInput] = useState(false);
   const [favoriteValue, setFavoriteValue] = useState("");
+
+  const API_URL = import.meta.env.VITE_PASSKEY_API
+
+  const createPasskey = async () => {
+    try {
+      const user = auth.currentUser;
+
+      if (!user) {
+        throw new Error("User not authenticated");
+      }
+
+      const optionsRes = await fetch(`${API_URL}/passkey/register/options`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          uid: user.uid,
+          email: user.email,
+        }),
+      });
+
+      const options = await optionsRes.json();
+
+      const registrationResponse = await startRegistration({
+        optionsJSON: options,
+      });
+
+      const verifyRes = await fetch(
+        `${API_URL}/passkey/register/verify`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            uid: user.uid,
+            registrationResponse,
+          }),
+        },
+      );
+
+      const verification = await verifyRes.json();
+      
+      toast.success('Passkey Created')
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   // toggle the input visibility
   const handleFavoriteClick = () => {
@@ -206,7 +258,7 @@ const Account = () => {
   };
 
   return (
-    <div className="min-h-screen bg-white text-black">
+    <div className="min-h-screen bg-white text-black pb-10">
       {/* Header Section */}
       <div className="bg-customBlack text-white py-6 text-center relative">
         <h1 className="mb-2">My Account</h1>
@@ -456,6 +508,16 @@ const Account = () => {
           <div className="flex items-center gap-3">
             <LuWallet className="text-xl" />
             <p>Saved Payment Methods</p>
+          </div>
+          <GoChevronRight className="text-gray-900 text-2xl" />
+        </div>
+        <div
+          className="flex justify-between items-center px-2 py-3 cursor-pointer"
+          onClick={() => createPasskey()}
+        >
+          <div className="flex items-center gap-3">
+            <HiOutlineKey className="text-xl" />
+            <p>Create a Passkey</p>
           </div>
           <GoChevronRight className="text-gray-900 text-2xl" />
         </div>
