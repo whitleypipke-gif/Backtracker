@@ -40,7 +40,7 @@ const Layout = ({ children }) => {
   }, []);
 
   // don't pad or show bottom nav on these routes
-  const hideBottomNavOn = ["/", "/splash", "/ticketmaster"];
+  const hideBottomNavOn = ["/", "/splash", "/ticketmaster", "/test"];
   const addPadding = !hideBottomNavOn.includes(location.pathname);
 
   return (

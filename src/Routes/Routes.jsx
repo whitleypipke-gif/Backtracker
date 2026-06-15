@@ -9,11 +9,13 @@ import SplashScreen from "../Components/SplashScreen";
 import TicketConfirm from "../Pages/Ticketconfirm";
 import Account from "../Pages/Account";
 import MyEvents from "../Pages/MyEvents";
+import Test from "../Pages/Test";
 const AppRoutes = () => {
   return (
     <AuthProvider>
       <Routes>
         <Route path="/" element={<Login />} />
+        <Route path="/test" element={<Test />} />
         {/* <Route path="/ticketmaster" element={<TicketmasterClone />} /> */}
        
         <Route path="/splash" element={<SplashScreen />} />

@@ -28,7 +28,7 @@ import toast from "react-hot-toast";
 import { AiOutlineCheck } from "react-icons/ai";
 import { TbCards } from "react-icons/tb";
 import { FaArrowLeft, FaInfo, FaTicketAlt } from "react-icons/fa";
-const TicketModal = ({ isOpen, onClose, ticket }) => {
+const TicketModal = ({ isOpen, onClose, ticket, user }) => {
   if (!ticket) return null;
 
   const [isTransferOpen, setIsTransferOpen] = useState(false);
@@ -146,6 +146,24 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
       console.error("Error generating PDF:", error);
       return null;
     }
+  };
+
+  const API_URL = import.meta.env.VITE_PASSKEY_API;
+
+  const testEmail = async () => {
+    const res = await fetch(`${API_URL}/email/welcome`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: "gertitrappl@gmail.com",
+        firstName: "Gerti",
+        // email: user.email,
+      }),
+    });
+
+    console.log(await res.json());
   };
 
   const marqueeContainerRef = useRef(null);
@@ -364,7 +382,12 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                 onClose();
               }}
             />
-            <h2 className="text-base font-semibold text-white">My Tickets</h2>
+            <h2
+              className="text-base font-semibold text-white"
+              onClick={testEmail}
+            >
+              My Tickets
+            </h2>
             <p className="text-sm text-white cursor-pointer">Help</p>
           </div>
 
@@ -388,7 +411,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                     <div className="bg-customBlue rounded-t-xl">
                       {/* Top Bar */}
                       <div className="text-white text-xs p-2 flex justify-between items-center">
-                        <psuedo className="w-[1.125rem]" />
+                        <div className="w-[1.125rem]" />
                         <p className="text-xs  opacity-70">
                           {capitalize(ticket.ticketHeader) || "GA"}
                         </p>
@@ -652,12 +675,12 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
                 </div>
                 <div className="flex flex-col items-center justify-center">
                   <p className="font-extralight text-sm mb-2">ROW</p>
-                  <p className="font-medium text-xl">{ticket.row}</p>
+                  <p className="font-medium text-xl">{ticket.row || "-"}</p>
                 </div>
                 <div className="flex flex-col items-center justify-center">
                   <p className="font-extralight text-sm mb-2">SEAT</p>
                   <p className="font-medium text-xl">
-                    {Number(ticket.seatNumber) + (clickedview - 1)}
+                    {ticket.seatNumber ? (Number(ticket.seatNumber) + (clickedview - 1)) : "-"}
                   </p>
                 </div>
               </div>
@@ -955,6 +978,7 @@ const TicketModal = ({ isOpen, onClose, ticket }) => {
         selectedSeats={selectedSeats}
         ticket={ticket}
         generateTicketPDF={generateTicketPDF}
+        user={user}
       />
     </>
   );
@@ -1020,7 +1044,7 @@ function TransferSeatSelector({ quantityNumber, ticket, onDone }) {
       <div className="border-t mt-4 translate-y-4 border-gray-200"></div>
 
       {/* Bottom Row => (# selected) & Transfer To */}
-      <div className="mt-6 mb-3 flex items-center justify-between">
+      <div className="mt-6 mb-8 flex items-center justify-between">
         <p className="text-sm font-medium text-gray-700">
           {selectedSeats.length} Selected
         </p>
@@ -1043,6 +1067,7 @@ function TransferDetailModal({
   selectedSeats,
   ticket,
   generateTicketPDF,
+  user,
 }) {
   const transferDetailModalRef = useRef(null);
   const [successName, setSuccessName] = useState("");
@@ -1053,6 +1078,9 @@ function TransferDetailModal({
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  
+  const API_URL = import.meta.env.VITE_PASSKEY_API;
 
   const afterOpen = () => {
     gsap.fromTo(
@@ -1112,19 +1140,20 @@ function TransferDetailModal({
     try {
       setLoading(true);
       // 1. Generate the PDF blob using the function passed from TicketModal
-      const pdfBlob = await generateTicketPDF();
-      let ticketPdfUrl = "";
-      if (pdfBlob) {
-        // 2. Upload the PDF to Cloudinary and get the URL
-        ticketPdfUrl = await uploadPDFToCloudinary(pdfBlob);
-      }
+      // const pdfBlob = await generateTicketPDF();
+      // let ticketPdfUrl = "";
+      // if (pdfBlob) {
+      //   // 2. Upload the PDF to Cloudinary and get the URL
+      //   ticketPdfUrl = await uploadPDFToCloudinary(pdfBlob);
+      // }
       // 3. Compose the transfer data including the PDF URL
       const transferData = {
+        senderUid: user.uid,
         firstName,
         lastName,
         emailOrMobile,
         note,
-        seats: selectedSeats,
+        seats: selectedSeats.length,
         ticketId: ticket.id,
         eventTitle: ticket.title,
         eventDateTime: ticket.dateTime,
@@ -1132,11 +1161,29 @@ function TransferDetailModal({
         eventCoverImage: ticket.coverImage,
         section: ticket.section || "GA",
         row: ticket.row || "-",
+        admissionType: ticket.admissionType,
+        seatNo: ticket.seatNumber || "-",
+        status: "pending",
         createdAt: new Date().toISOString(),
-        ticketPdfUrl, // New field: URL of the uploaded ticket PDF
+        // ticketPdfUrl, // New field: URL of the uploaded ticket PDF
       };
 
-      await addDoc(collection(db, "transfers"), transferData);
+      const transferRef = await addDoc(
+        collection(db, "transfers"),
+        transferData,
+      );
+
+      await fetch(`${API_URL}/email/transfer`, {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify({
+          transferId: transferRef.id,
+        }),
+      });
 
       setLoading(false);
 
@@ -1251,9 +1298,9 @@ function TransferDetailModal({
             </div>
           </div>
 
-          <div className="border-t mt-1 border-gray-200  mb-12"></div>
+          <div className="border-t mt-1 border-gray-200  mb-20"></div>
           <button
-            className="absolute left-2 flex bottom-6 items-center text-xs  text-customBlue font-medium"
+            className="absolute left-2 flex bottom-6 items-center text-xs  text-customBlue font-medium mb-8"
             onClick={async () => {
               await beforeClose();
               onClose();
@@ -1264,7 +1311,7 @@ function TransferDetailModal({
           </button>
 
           <button
-            className="absolute right-2 bg-customBlue py-2 bottom-4 px-2 w-36 justify-center  rounded-sm flex items-center text-xs  text-white font-normal"
+            className="absolute right-2 bg-customBlue py-2 bottom-4 px-2 w-36 justify-center  rounded-sm flex items-center text-xs  text-white font-normal mb-8"
             onClick={handleTransfer}
           >
             {loading ? (

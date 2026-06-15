@@ -1,14 +1,18 @@
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import Navbar from "../Components/NavBar";
 import { useSelector, useDispatch } from "react-redux";
 import { setTickets, deleteTicket } from "../redux/ticketSlice";
 import {
+  where,
   collection,
   onSnapshot,
   doc,
   getDoc,
   updateDoc,
   deleteDoc,
+  query,
+  getDocs,
 } from "firebase/firestore";
 import { LuDot } from "react-icons/lu";
 import { IoTicket } from "react-icons/io5";
@@ -25,6 +29,14 @@ const MyEvents = () => {
   // We'll treat all tickets as upcoming
   const upcomingTickets = tickets.filter((ticket) => !ticket.hide);
   const pastTickets = [];
+
+  const [searchParams] = useSearchParams();
+
+  const action = searchParams.get("action");
+
+  const transferId = searchParams.get("transferId");
+
+  const acceptingTransfer = action === "accept-transfer" && transferId;
 
   // Manage active tab locally
   const [activeTab, setActiveTab] = useState("upcoming");
@@ -55,6 +67,12 @@ const MyEvents = () => {
     return () => unsubscribe();
   }, [dispatch]);
 
+  // useEffect(() => {
+  //   if (accepting === "true" && transferId) {
+  //     // show transfer acceptance UI
+  //   }
+  // }, [accepting, transferId]);
+
   useEffect(() => {
     const handlePopState = (event) => {
       console.log("POPSTATE:", event.state);
@@ -81,6 +99,8 @@ const MyEvents = () => {
   const [helpTapCount, setHelpTapCount] = useState(0);
   const [showDevMenu, setShowDevMenu] = useState(false);
   const [selectedTickets, setSelectedTickets] = useState([]);
+
+  const [pendingTransfers, setPendingTransfers] = useState([])
 
   const handleHelpTap = () => {
     const nextCount = helpTapCount + 1;
@@ -175,6 +195,40 @@ const MyEvents = () => {
 
     fetchUserCountry();
   }, [user]);
+  useEffect(() => {
+  const fetchTransfers = async () => {
+    const q = query(
+      collection(db, "transfers"),
+      where(
+        "recipientEmail",
+        "==",
+        user.email.toLowerCase()
+      ),
+      where(
+        "status",
+        "==",
+        "pending"
+      )
+    );
+
+    const snapshot =
+      await getDocs(q);
+
+    const transfers =
+      snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+
+    setPendingTransfers(
+      transfers
+    );
+  };
+
+  if (user?.email) {
+    fetchTransfers();
+  }
+}, [user]);
 
   // Handler for opening a ticket view.
   // When a user clicks, ask if they want to delete the ticket.
@@ -281,9 +335,7 @@ const MyEvents = () => {
               onClick={() => openModal(ticket)}
             >
               {/* Image + Overlay; clicking calls openModal */}
-              <div
-                className="relative  h-48 md:h-48  cursor-pointer"
-              >
+              <div className="relative  h-48 md:h-48  cursor-pointer">
                 <img
                   src={ticket.coverImage}
                   alt=""
@@ -341,6 +393,7 @@ const MyEvents = () => {
         isOpen={showModal}
         onClose={closeModal}
         ticket={selectedTicket}
+        user={user}
         // generateTicketPDF={generateTicketPDF}
       />
       {showDevMenu && (

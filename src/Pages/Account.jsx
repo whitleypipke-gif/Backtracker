@@ -5,7 +5,7 @@ import { MdOutlineHelpOutline, MdOutlinePayment } from "react-icons/md";
 import { GrMapLocation } from "react-icons/gr";
 import { TiLocationArrowOutline } from "react-icons/ti";
 import { TfiEmail } from "react-icons/tfi";
-import { BiEdit, BiBell } from "react-icons/bi";
+import { BiEdit, BiBell, BiLoader } from "react-icons/bi";
 import { Switch } from "@headlessui/react";
 import { useAuth } from "../Context/AuthContext";
 import { PiHeartStraightLight, PiHeartStraightBold } from "react-icons/pi";
@@ -57,9 +57,12 @@ const Account = () => {
   const [showFavoriteInput, setShowFavoriteInput] = useState(false);
   const [favoriteValue, setFavoriteValue] = useState("");
 
-  const API_URL = import.meta.env.VITE_PASSKEY_API
+  const [passloading, setpassloading] = useState(false);
+
+  const API_URL = import.meta.env.VITE_PASSKEY_API;
 
   const createPasskey = async () => {
+    setpassloading(true);
     try {
       const user = auth.currentUser;
 
@@ -79,30 +82,39 @@ const Account = () => {
       });
 
       const options = await optionsRes.json();
+      console.log(options);
 
       const registrationResponse = await startRegistration({
         optionsJSON: options,
       });
 
-      const verifyRes = await fetch(
-        `${API_URL}/passkey/register/verify`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            uid: user.uid,
-            registrationResponse,
-          }),
+      const platform = navigator.userAgentData?.platform || navigator.platform;
+
+      const browser = navigator.userAgentData?.brands?.[0]?.brand || "Browser";
+
+      const suffix = Math.random().toString(36).substring(2, 6).toUpperCase();
+
+      const deviceName = `${platform} • ${browser} • ${suffix}`;
+
+      const verifyRes = await fetch(`${API_URL}/passkey/register/verify`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          uid: user.uid,
+          registrationResponse,
+          deviceName,
+        }),
+      });
 
       const verification = await verifyRes.json();
-      
-      toast.success('Passkey Created')
+
+      toast.success("Passkey Created");
+      setpassloading(false);
     } catch (error) {
       console.error(error);
+      setpassloading(false);
     }
   };
 
@@ -512,14 +524,19 @@ const Account = () => {
           <GoChevronRight className="text-gray-900 text-2xl" />
         </div>
         <div
-          className="flex justify-between items-center px-2 py-3 cursor-pointer"
+          className="flex justify-between items-center px-2 py-3 cursor-pointer active:bg-neutral-100"
           onClick={() => createPasskey()}
         >
           <div className="flex items-center gap-3">
             <HiOutlineKey className="text-xl" />
             <p>Create a Passkey</p>
           </div>
-          <GoChevronRight className="text-gray-900 text-2xl" />
+
+          {!passloading ? (
+            <GoChevronRight className="text-gray-900 text-2xl" />
+          ) : (
+            <BiLoader className="text-gray-900 text-2xl animate-spin" />
+          )}
         </div>
       </div>
       <div className="px-4 mt-4">

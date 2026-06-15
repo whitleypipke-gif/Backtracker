@@ -8,7 +8,7 @@ import {
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { doc, setDoc, getDoc, serverTimestamp } from "firebase/firestore"; // Firestore methods
 import { ClipLoader } from "react-spinners"; // Import spinner
-import { useNavigate } from "react-router-dom"; // For navigation
+import { useNavigate, useLocation } from "react-router-dom"; // For navigation
 import toast, { Toaster } from "react-hot-toast"; // Import React Hot Toast
 import { startAuthentication } from "@simplewebauthn/browser";
 import { BiLoader } from "react-icons/bi";
@@ -21,11 +21,15 @@ const Login = () => {
   const [emailExists, setEmailExists] = useState(null); // State to track email existence
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate(); // Initialize navigation
+  const location = useLocation();
+
+  const redirectPath =
+    location.state?.from?.pathname + location.state?.from?.search || "/splash";
 
   const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 
   // Confirm user email existence
-  const confirmUserEmail = async (email) => {
+  const confirmUlserEmail = async (email) => {
     const userRef = doc(db, "users", email);
     const userSnap = await getDoc(userRef);
     setEmailExists(userSnap.exists());
@@ -63,8 +67,8 @@ const Login = () => {
       }
 
       setTimeout(() => {
-        navigate("/splash"); // Redirect to home page
-      }, 500); // Delay to allow users to see success message
+        navigate(redirectPath); // Redirect to home page
+      }, 200); // Delay to allow users to see success message
     } catch (err) {
       if (err.code === "auth/user-not-found") {
         toast.error("❌ User does not exist.");
@@ -109,12 +113,8 @@ const Login = () => {
       if (result.verified) {
         await signInWithCustomToken(auth, result.customToken);
 
-        navigate("/splash");
+        navigate(redirectPath);
       }
-
-      console.log(result);
-
-      console.log(authenticationResponse);
     } catch (error) {
       console.error(error);
       toast.error("Error using passkey sign in");
@@ -211,6 +211,9 @@ const Login = () => {
               signInWithPasskey();
             }}
           >
+            <span className="mr-2">
+              <svg width="24" height="24" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="#000000" d="M11 18Zm-8 2v-2.8q0-.85.438-1.563T4.6 14.55q1.55-.775 3.15-1.163T11 13q.5 0 1 .038t1 .112q-.05.525.025 1.05t.25 1.025q-.575-.125-1.137-.175T11 15q-1.4 0-2.775.338T5.5 16.35q-.225.125-.363.35T5 17.2v.8h10.5v2H3Zm16 3l-1.5-1.5v-4.65q-1.1-.325-1.8-1.238T15 13.5q0-1.45 1.025-2.475T18.5 10q1.45 0 2.475 1.025T22 13.5q0 1.125-.638 2t-1.612 1.25L21 18l-1.5 1.5L21 21l-2 2Zm-.5-9q.425 0 .713-.288T19.5 13q0-.425-.288-.713T18.5 12q-.425 0-.713.288T17.5 13q0 .425.288.713T18.5 14ZM11 12q-1.65 0-2.825-1.175T7 8q0-1.65 1.175-2.825T11 4q1.65 0 2.825 1.175T15 8q0 1.65-1.175 2.825T11 12Zm0-2q.825 0 1.413-.588T13 8q0-.825-.588-1.413T11 6q-.825 0-1.413.588T9 8q0 .825.588 1.413T11 10Zm0-2Z"/></svg>
+            </span>
             Sign In With A Passkey{" "}
             {passloading && (
               <span>
