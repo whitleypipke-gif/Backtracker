@@ -1305,7 +1305,7 @@ function TransferDetailModal({
               await beforeClose();
               onClose();
             }}
-          >
+          >0
             <GoChevronRight className="rotate-180 mr-1" />
             Back
           </button>

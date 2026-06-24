@@ -33,7 +33,9 @@ body,
 }
 
 .app {
-  padding-top: env(safe-area-inset-top);
+  height: env(safe-area-inset-top);
+  width: 100%;
+  background: var(--safe-area-color);
 }
 
 @layer utilities {

@@ -26,6 +26,15 @@ const TicketConfirm = () => {
     fetchTicketName();
   }, [user]);
 
+  useEffect(() => {
+  window.scrollTo(0, 0);
+
+  document.documentElement.style.setProperty(
+    "--safe-area-color",
+    "#ffffff"
+  );
+}, []);
+
   return (
     <div className=" bg-white flex flex-col">
       {/* Header with blue bar + logo */}

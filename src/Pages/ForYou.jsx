@@ -184,6 +184,15 @@ const ForYou = () => {
     fetchTransfers();
   }, []);
 
+  useEffect(() => {
+  window.scrollTo(0, 0);
+
+  document.documentElement.style.setProperty(
+    "--safe-area-color",
+    "#101828"
+  );
+}, []);
+
   return (
     <>
       <AddTicket />

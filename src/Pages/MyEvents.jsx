@@ -277,6 +277,15 @@ const MyEvents = () => {
     );
   });
 
+  useEffect(() => {
+  window.scrollTo(0, 0);
+
+  document.documentElement.style.setProperty(
+    "--safe-area-color",
+    "#121212"
+  );
+}, []);
+
   return (
     <div className="min-h-screen  bg-white text-white">
       {/* Header with flag */}
