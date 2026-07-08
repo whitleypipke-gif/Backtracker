@@ -2,10 +2,12 @@ import { IoSearchOutline, IoHeartSharp, IoTicket } from "react-icons/io5";
 import { FaMoneyBillWave } from "react-icons/fa";
 import { FaCircleUser } from "react-icons/fa6";
 import { useNavigate, useLocation } from "react-router-dom"; // ✅ Import useLocation
+import { useAuth } from "../Context/AuthContext";
 
 const BottomNav = () => {
   const navigate = useNavigate();
   const location = useLocation(); // ✅ Get current location
+  // const { user, logout } = useAuth(); // Get the current user from AuthContext
 
   const tabs = [
     {
@@ -40,9 +42,42 @@ const BottomNav = () => {
     },
   ];
 
+  const tabz = [
+    {
+      id: "discover",
+      label: "Discover",
+      icon: <IoSearchOutline size={22} />,
+      path: "/home",
+    },
+    {
+      id: "foryou",
+      label: "Favorites",
+      icon: <IoHeartSharp size={22} />,
+      path: "/foryou",
+    },
+    {
+      id: "myevents",
+      label: "My Events",
+      icon: <IoTicket size={22} />,
+      path: "/myevents",
+    },
+    {
+      id: "account",
+      label: "My Account",
+      icon: <FaCircleUser size={22} />,
+      path: "/account",
+    },
+  ];
+
+
+  // const isMaster = user?.isMaster; // Check if the user is a master user
+  const isMaster = true; // Placeholder - replace with actual user type check
+
+  const tabsToRender = isMaster ? tabs : tabz; // Choose which tabs to render based on user type
+
   return (
     <div className="fixed z-40 bottom-0 left-0 w-full bg-white text-white pt-3 pb-7 border-t border-gray-200 flex justify-around">
-      {tabs.map((tab) => {
+      {tabsToRender.map((tab) => {
         // ✅ Determine active tab by checking if current path matches tab.path
         const isActive = location.pathname === tab.path;
 

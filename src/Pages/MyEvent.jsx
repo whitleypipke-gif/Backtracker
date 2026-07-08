@@ -1,18 +1,21 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import Navbar from "../Components/NavBar";
 import { useSelector, useDispatch } from "react-redux";
-import { setTickets } from "../redux/ticketSlice";
+import { setTickets, deleteTicket } from "../redux/ticketSlice";
 import {
+  where,
   collection,
   onSnapshot,
   doc,
   getDoc,
   updateDoc,
   deleteDoc,
-  setDoc,
-  serverTimestamp,
+  query,
+  getDocs,
 } from "firebase/firestore";
+import { LuDot } from "react-icons/lu";
+import { IoTicket } from "react-icons/io5";
 import CountryFlag from "react-country-flag";
 import { useAuth } from "../Context/AuthContext";
 import TicketModal from "../Components/TicketModal";
@@ -33,7 +36,7 @@ const MyEvents = () => {
 
   const transferId = searchParams.get("transferId");
 
-  const acceptingTransfer = action === "accept-transfer" && Boolean(transferId);
+  const acceptingTransfer = action === "accept-transfer" && transferId;
 
   // Manage active tab locally
   const [activeTab, setActiveTab] = useState("upcoming");
@@ -43,16 +46,26 @@ const MyEvents = () => {
     code: "US",
     name: "United States",
   });
-  const [userProfile, setUserProfile] = useState(null);
-  const [userProfileLoaded, setUserProfileLoaded] = useState(false);
-
-  const isMasterUser = user?.isMaster === true || userProfile?.isMaster === true;
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
   const [ticketSearch, setTicketSearch] = useState("");
-  const processedTransfersRef = useRef(new Set());
+  useEffect(() => {
+    const ticketsRef = collection(db, "tickets");
+    const unsubscribe = onSnapshot(
+      ticketsRef,
+      (snapshot) => {
+        const updated = snapshot.docs.map((d) => ({
+          id: d.id,
+          ...d.data(),
+        }));
+        dispatch(setTickets(updated));
+      },
+      (error) => console.error("Tickets listener error:", error),
+    );
+    return () => unsubscribe();
+  }, [dispatch]);
 
   // useEffect(() => {
   //   if (accepting === "true" && transferId) {
@@ -87,9 +100,9 @@ const MyEvents = () => {
   const [showDevMenu, setShowDevMenu] = useState(false);
   const [selectedTickets, setSelectedTickets] = useState([]);
 
-  const handleHelpTap = () => {
-    if (!isMasterUser) return;
+  const [pendingTransfers, setPendingTransfers] = useState([])
 
+  const handleHelpTap = () => {
     const nextCount = helpTapCount + 1;
 
     if (nextCount >= 2) {
@@ -159,130 +172,63 @@ const MyEvents = () => {
     }
   };
 
-  // Fetch the user's Firestore profile so role and country are available before choosing a ticket source.
+  // Fetch user's country from Firestore if user exists
   useEffect(() => {
-    if (!user?.uid) {
-      setUserProfile(null);
-      setUserProfileLoaded(false);
-      return;
-    }
+    if (!user) return;
 
-    const fetchUserProfile = async () => {
+    const fetchUserCountry = async () => {
       try {
+        // Assuming user country is stored in Firestore under "users/{uid}"
         const userRef = doc(db, "users", user.uid);
         const userSnap = await getDoc(userRef);
-
         if (userSnap.exists()) {
           const userData = userSnap.data();
-          setUserProfile(userData);
-
           if (userData.country) {
             console.log("User’s country:", userData.country);
             setSelectedCountry(userData.country);
           }
-        } else {
-          setUserProfile({});
         }
       } catch (error) {
-        console.error("Error fetching user profile:", error);
-        setUserProfile({});
-      } finally {
-        setUserProfileLoaded(true);
+        console.error("Error fetching user country:", error);
       }
     };
 
-    fetchUserProfile();
-  }, [user?.uid]);
-
+    fetchUserCountry();
+  }, [user]);
   useEffect(() => {
-    if (!user?.uid || !userProfileLoaded) {
-      dispatch(setTickets([]));
-      return;
-    }
-
-    const ticketsRef = isMasterUser
-      ? collection(db, "tickets")
-      : collection(db, "users", user.uid, "myTickets");
-
-    const unsubscribe = onSnapshot(
-      ticketsRef,
-      (snapshot) => {
-        const updated = snapshot.docs.map((d) => ({
-          id: d.id,
-          ...d.data(),
-        }));
-        dispatch(setTickets(updated));
-      },
-      (error) => console.error("Tickets listener error:", error),
+  const fetchTransfers = async () => {
+    const q = query(
+      collection(db, "transfers"),
+      where(
+        "recipientEmail",
+        "==",
+        user.email.toLowerCase()
+      ),
+      where(
+        "status",
+        "==",
+        "pending"
+      )
     );
 
-    return () => unsubscribe();
-  }, [dispatch, isMasterUser, user?.uid, userProfileLoaded]);
+    const snapshot =
+      await getDocs(q);
 
-  useEffect(() => {
-    if (!user?.uid || !userProfileLoaded || isMasterUser || !acceptingTransfer) {
-      return;
-    }
+    const transfers =
+      snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
 
-    const createMyTicketFromTransfer = async () => {
-      if (processedTransfersRef.current.has(transferId)) return;
-      processedTransfersRef.current.add(transferId);
+    setPendingTransfers(
+      transfers
+    );
+  };
 
-      try {
-        const transferRef = doc(db, "transfers", transferId);
-        const transferSnap = await getDoc(transferRef);
-
-        if (!transferSnap.exists()) {
-          toast.error("Transfer not found");
-          return;
-        }
-
-        const transferData = transferSnap.data();
-        const { ticketId, seats } = transferData;
-
-        if (!ticketId) {
-          toast.error("Transfer is missing a ticket ID");
-          return;
-        }
-
-        if (seats === undefined || seats === null) {
-          toast.error("Transfer is missing seat quantity");
-          return;
-        }
-
-        const ticketRef = doc(db, "tickets", ticketId);
-        const ticketSnap = await getDoc(ticketRef);
-
-        if (!ticketSnap.exists()) {
-          toast.error("Ticket not found");
-          return;
-        }
-
-        const userTicketRef = doc(db, "users", user.uid, "myTickets", ticketId);
-
-        await setDoc(
-          userTicketRef,
-          {
-            ...ticketSnap.data(),
-            id: ticketId,
-            originalTicketId: ticketId,
-            transferId,
-            quantity: seats,
-            acceptedAt: serverTimestamp(),
-          },
-          { merge: true },
-        );
-
-        toast.success("Transferred ticket added to My Events");
-      } catch (error) {
-        processedTransfersRef.current.delete(transferId);
-        console.error("Error creating ticket from transfer:", error);
-        toast.error("Failed to add transfer ticket");
-      }
-    };
-
-    createMyTicketFromTransfer();
-  }, [acceptingTransfer, isMasterUser, transferId, user?.uid, userProfileLoaded]);
+  if (user?.email) {
+    fetchTransfers();
+  }
+}, [user]);
 
   // Handler for opening a ticket view.
   // When a user clicks, ask if they want to delete the ticket.
@@ -459,7 +405,7 @@ const MyEvents = () => {
         user={user}
         // generateTicketPDF={generateTicketPDF}
       />
-      {isMasterUser && showDevMenu && (
+      {showDevMenu && (
         <div className="fixed inset-0 bg-black/60 z-[9999] flex items-center justify-center">
           <div className="bg-white text-black w-[95%] max-w-md rounded-lg p-4 max-h-[80vh] overflow-hidden">
             <div className="flex justify-between items-center mb-1">
