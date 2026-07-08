@@ -113,28 +113,28 @@ const MyEvents = () => {
     );
   };
 
-  const hideSelectedTickets = async () => {
-    try {
-      const selectedTicketObjects = tickets.filter((ticket) =>
-        selectedTickets.includes(ticket.id),
-      );
+  // const hideSelectedTickets = async () => {
+  //   try {
+  //     const selectedTicketObjects = tickets.filter((ticket) =>
+  //       selectedTickets.includes(ticket.id),
+  //     );
 
-      await Promise.all(
-        selectedTicketObjects.map((ticket) =>
-          updateDoc(doc(db, "tickets", ticket.id), {
-            hide: !ticket.hide,
-          }),
-        ),
-      );
+  //     await Promise.all(
+  //       selectedTicketObjects.map((ticket) =>
+  //         updateDoc(doc(db, "tickets", ticket.id), {
+  //           hide: !ticket.hide,
+  //         }),
+  //       ),
+  //     );
 
-      toast.success(`${selectedTickets.length} ticket(s) hidden`);
+  //     toast.success(`${selectedTickets.length} ticket(s) hidden`);
 
-      setSelectedTickets([]);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to hide tickets");
-    }
-  };
+  //     setSelectedTickets([]);
+  //   } catch (err) {
+  //     console.error(err);
+  //     toast.error("Failed to hide tickets");
+  //   }
+  // };
 
   const deleteSelectedTickets = async () => {
     const confirmed = window.confirm(
