@@ -33,7 +33,7 @@ body,
 }
 
 .app {
-  height: 60px;
+  height: env(safe-area-inset-top);
   width: 100%;
   background: var(--safe-area-color);
 }

@@ -1,8 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useSearchParams } from "react-router-dom";
-import Navbar from "../Components/NavBar";
 import { useSelector, useDispatch } from "react-redux";
-import { setTickets } from "../redux/ticketSlice";
+import {
+  clearTickets,
+  setTickets,
+  setTicketsError,
+} from "../redux/ticketSlice";
 import {
   collection,
   onSnapshot,
@@ -16,14 +19,54 @@ import {
 import CountryFlag from "react-country-flag";
 import { useAuth } from "../Context/AuthContext";
 import TicketModal from "../Components/TicketModal";
-import { toast, Toaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { db } from "../firebase.config";
+
+const DEFAULT_COUNTRY = {
+  isoCode: "US",
+  name: "United States",
+};
+
+const normalizeCountry = (country) => {
+  if (typeof country === "string") {
+    return {
+      isoCode: country.toUpperCase(),
+      name: country,
+    };
+  }
+
+  return {
+    isoCode: country?.isoCode || country?.code || DEFAULT_COUNTRY.isoCode,
+    name: country?.name || DEFAULT_COUNTRY.name,
+  };
+};
+
+const getTicketName = (ticket) =>
+  ticket.ticketName ||
+  ticket.ticketname ||
+  ticket.ticket_name ||
+  ticket.title ||
+  ticket.name ||
+  "Ticket";
+
+const isPendingTicket = (ticket) =>
+  String(ticket.status ?? "").toLowerCase() === "pending";
+
+const toSearchText = (value) => String(value ?? "").toLowerCase();
+
 const MyEvents = () => {
   const { user } = useAuth();
   const dispatch = useDispatch();
-  // Use Redux to manage tickets state instead of local state
   const tickets = useSelector((state) => state.tickets.tickets);
-  // We'll treat all tickets as upcoming
+  const {
+    userData,
+    isMaster: isMasterUser,
+    status: userStatus,
+  } = useSelector((state) => state.user);
+  const userProfileLoaded =
+    userStatus === "succeeded" || userStatus === "failed";
+
+  // We'll treat all visible tickets as upcoming.
   const upcomingTickets = tickets.filter((ticket) => !ticket.hide);
   const pastTickets = [];
 
@@ -39,14 +82,7 @@ const MyEvents = () => {
   const [activeTab, setActiveTab] = useState("upcoming");
 
   // Country state (for header flag)
-  const [selectedCountry, setSelectedCountry] = useState({
-    code: "US",
-    name: "United States",
-  });
-  const [userProfile, setUserProfile] = useState(null);
-  const [userProfileLoaded, setUserProfileLoaded] = useState(false);
-
-  const isMasterUser = user?.isMaster === true || userProfile?.isMaster === true;
+  const [selectedCountry, setSelectedCountry] = useState(DEFAULT_COUNTRY);
 
   // Modal state
   const [showModal, setShowModal] = useState(false);
@@ -159,47 +195,19 @@ const MyEvents = () => {
     }
   };
 
-  // Fetch the user's Firestore profile so role and country are available before choosing a ticket source.
   useEffect(() => {
-    if (!user?.uid) {
-      setUserProfile(null);
-      setUserProfileLoaded(false);
-      return;
-    }
-
-    const fetchUserProfile = async () => {
-      try {
-        const userRef = doc(db, "users", user.uid);
-        const userSnap = await getDoc(userRef);
-
-        if (userSnap.exists()) {
-          const userData = userSnap.data();
-          setUserProfile(userData);
-
-          if (userData.country) {
-            console.log("User’s country:", userData.country);
-            setSelectedCountry(userData.country);
-          }
-        } else {
-          setUserProfile({});
-        }
-      } catch (error) {
-        console.error("Error fetching user profile:", error);
-        setUserProfile({});
-      } finally {
-        setUserProfileLoaded(true);
-      }
-    };
-
-    fetchUserProfile();
-  }, [user?.uid]);
+    setSelectedCountry(
+      userData?.country ? normalizeCountry(userData.country) : DEFAULT_COUNTRY,
+    );
+  }, [userData?.country]);
 
   useEffect(() => {
     if (!user?.uid || !userProfileLoaded) {
-      dispatch(setTickets([]));
+      dispatch(clearTickets());
       return;
     }
 
+    const source = isMasterUser ? "master" : "user";
     const ticketsRef = isMasterUser
       ? collection(db, "tickets")
       : collection(db, "users", user.uid, "myTickets");
@@ -207,13 +215,23 @@ const MyEvents = () => {
     const unsubscribe = onSnapshot(
       ticketsRef,
       (snapshot) => {
-        const updated = snapshot.docs.map((d) => ({
-          id: d.id,
-          ...d.data(),
+        const updated = snapshot.docs.map((ticketDoc) => ({
+          id: ticketDoc.id,
+          ...ticketDoc.data(),
         }));
-        dispatch(setTickets(updated));
+
+        dispatch(
+          setTickets({
+            tickets: updated,
+            source,
+            ownerUid: isMasterUser ? null : user.uid,
+          }),
+        );
       },
-      (error) => console.error("Tickets listener error:", error),
+      (error) => {
+        console.error("Tickets listener error:", error);
+        dispatch(setTicketsError(error.message));
+      },
     );
 
     return () => unsubscribe();
@@ -268,6 +286,7 @@ const MyEvents = () => {
             originalTicketId: ticketId,
             transferId,
             quantity: seats,
+            status: "pending",
             acceptedAt: serverTimestamp(),
           },
           { merge: true },
@@ -322,23 +341,23 @@ const MyEvents = () => {
   const filteredTickets = tickets.filter((ticket) => {
     const search = ticketSearch.toLowerCase();
 
-    return (
-      ticket.title?.toLowerCase().includes(search) ||
-      ticket.location?.toLowerCase().includes(search) ||
-      ticket.dateTime?.toLowerCase().includes(search) ||
-      ticket.section?.toLowerCase().includes(search) ||
-      (ticket.quantity + " tickets").toLowerCase().includes(search)
-    );
+    return [
+      getTicketName(ticket),
+      ticket.location,
+      ticket.dateTime,
+      ticket.section,
+      `${ticket.quantity ?? 0} tickets`,
+    ].some((value) => toSearchText(value).includes(search));
   });
 
   useEffect(() => {
-  window.scrollTo(0, 0);
+    window.scrollTo(0, 0);
 
-  document.documentElement.style.setProperty(
-    "--safe-area-color",
-    "#121212"
-  );
-}, []);
+    document.documentElement.style.setProperty(
+      "--safe-area-color",
+      "#121212",
+    );
+  }, []);
 
   return (
     <div className="min-h-screen  bg-white text-white">
@@ -391,57 +410,69 @@ const MyEvents = () => {
       {/* Content */}
       <div className="p-2">
         {activeTab === "upcoming" &&
-          upcomingTickets.map((ticket) => (
-            <div
-              key={ticket.id}
-              className="mb-6 rounded-sm text-black overflow-hidden cursor-pointer"
-              onClick={() => openModal(ticket)}
-            >
-              {/* Image + Overlay; clicking calls openModal */}
-              <div className="relative  h-48 md:h-48  cursor-pointer">
-                <img
-                  src={ticket.coverImage}
-                  alt=""
-                  className="w-full h-48 object-cover"
-                />
+          upcomingTickets.map((ticket) =>
+            isPendingTicket(ticket) ? (
+              <div
+                key={ticket.id}
+                className="mb-2 flex w-full items-center justify-between border border-gray-200 bg-white px-4 py-4 text-black shadow-sm"
+              >
+                <span className="min-w-0 truncate pr-4 font-medium">
+                  {getTicketName(ticket)}
+                </span>
+                <span className="shrink-0 text-sm capitalize text-gray-600">
+                  Pending
+                </span>
+              </div>
+            ) : (
+              <div
+                key={ticket.id}
+                className="mb-6 overflow-hidden rounded-sm text-black cursor-pointer"
+                onClick={() => openModal(ticket)}
+              >
+                {/* Image + Overlay; clicking calls openModal */}
+                <div className="relative h-48 cursor-pointer md:h-48">
+                  <img
+                    src={ticket.coverImage}
+                    alt={getTicketName(ticket)}
+                    className="h-48 w-full object-cover"
+                  />
 
-                <div className="absolute bottom-0 w-full text-white">
-                  <div className="bg-neutral-800 border border-neutral-800 px-4 pt-2 w-[60%] capitalize">
-                    {" "}
-                    {ticket.dateTime}
+                  <div className="absolute bottom-0 w-full text-white">
+                    <div className="w-[60%] border border-neutral-800 bg-neutral-800 px-4 pt-2 capitalize">
+                      {ticket.dateTime}
+                    </div>
+                  </div>
+                </div>
+                <div className="w-full text-white">
+                  <div className="w-full border border-neutral-800 bg-neutral-800 px-4 pb-1 pt-2 text-[1.5rem] font-extrabold capitalize">
+                    {getTicketName(ticket)}
+                  </div>
+                  <div className="flex w-full items-center justify-between border border-neutral-800 bg-neutral-800 px-4 pb-4.5 text-[0.875rem] font-light capitalize">
+                    {ticket.location}
+                    <div className="flex items-center justify-items-end text-lg font-bold">
+                      <svg
+                        className="-rotate-3"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 94 97"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M71.1992 0.19043L71.8721 0.101562L73.8232 14.8789L91.0635 18.374L93.4355 18.792L83.0381 77.7549L83.0781 77.832L62.2559 96.1748L62.2051 96.4111L28.0674 89.0068L28.0693 88.9932L15.2627 91.252L14.2773 91.4258L0.472656 13.1328L0.423828 13.1406L0 10.1709L71.1729 0L71.1992 0.19043ZM79.7256 59.5645L79.7402 59.5742L79.7295 59.5898L79.7559 59.7881L79.583 59.8105L64.5029 82.5693L35.8438 87.6221L61.2627 93.1357L80.2256 76.4307L89.9629 21.2119L74.2393 18.0244L79.7256 59.5645ZM3.44336 12.709L16.7109 87.9492L62.7129 79.8379L76.6074 58.8701L69.2676 3.30273L3.44336 12.709ZM62.4355 71.791L21.3359 78.1836L20.1064 70.2793L61.2061 63.8857L62.4355 70.791ZM62.7764 12.833L62.8525 12.8223L63.6006 18L64.0869 21.0439L64.042 21.0508L67.085 42.0889L67.1006 42.0869L68.6758 51.9619L18.8184 59.9121L17.7041 52.9287L17.6846 52.9316L17.4854 51.5576L17.2432 50.0361L17.2646 50.0322L14.1514 28.5059L12.6543 19.1182L62.5117 11.168L62.7764 12.833ZM24.0986 27.4189L27.1416 48.457L57.209 43.6631L54.166 22.625L24.0986 27.4189ZM52.2041 38.4854L30.3857 41.9414L28.665 31.0762L50.4834 27.6211L52.2041 38.4854Z"
+                          fill="white"
+                        />
+                      </svg>
+                      <p className="ml-1">
+                        <span className="text-xs">x</span>
+                        {ticket.quantity}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
-              <div className="w-full text-white">
-                <div className="bg-neutral-800 border border-neutral-800 px-4 pt-2 pb-1 w-full capitalize text-[1.5rem] font-extrabold">
-                  {" "}
-                  {ticket.title}
-                </div>
-                <div className="bg-neutral-800 border border-neutral-800 px-4 pb-4.5 w-full capitalize text-[0.875rem] font-light flex items-center justify-between">
-                  {ticket.location}
-                  <div className="font-bold text-lg flex items-center justify-items-end">
-                    <svg
-                      className="-rotate-3"
-                      width="20"
-                      height="20"
-                      viewBox="0 0 94 97"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <path
-                        d="M71.1992 0.19043L71.8721 0.101562L73.8232 14.8789L91.0635 18.374L93.4355 18.792L83.0381 77.7549L83.0781 77.832L62.2559 96.1748L62.2051 96.4111L28.0674 89.0068L28.0693 88.9932L15.2627 91.252L14.2773 91.4258L0.472656 13.1328L0.423828 13.1406L0 10.1709L71.1729 0L71.1992 0.19043ZM79.7256 59.5645L79.7402 59.5742L79.7295 59.5898L79.7559 59.7881L79.583 59.8105L64.5029 82.5693L35.8438 87.6221L61.2627 93.1357L80.2256 76.4307L89.9629 21.2119L74.2393 18.0244L79.7256 59.5645ZM3.44336 12.709L16.7109 87.9492L62.7129 79.8379L76.6074 58.8701L69.2676 3.30273L3.44336 12.709ZM62.4355 71.791L21.3359 78.1836L20.1064 70.2793L61.2061 63.8857L62.4355 70.791ZM62.7764 12.833L62.8525 12.8223L63.6006 18L64.0869 21.0439L64.042 21.0508L67.085 42.0889L67.1006 42.0869L68.6758 51.9619L18.8184 59.9121L17.7041 52.9287L17.6846 52.9316L17.4854 51.5576L17.2432 50.0361L17.2646 50.0322L14.1514 28.5059L12.6543 19.1182L62.5117 11.168L62.7764 12.833ZM24.0986 27.4189L27.1416 48.457L57.209 43.6631L54.166 22.625L24.0986 27.4189ZM52.2041 38.4854L30.3857 41.9414L28.665 31.0762L50.4834 27.6211L52.2041 38.4854Z"
-                        fill="white"
-                      />
-                    </svg>
-                    <p className="ml-1">
-                      <span className="text-xs">x</span>
-                      {ticket.quantity}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
+            ),
+          )}
 
         {activeTab === "upcoming" && upcomingTickets.length === 0 && (
           <p className="text-center text-gray-500 mt-4">No upcoming events.</p>
@@ -494,7 +525,9 @@ const MyEvents = () => {
 
                   {/* Ticket Info */}
                   <div className="flex flex-col flex-1 min-w-0">
-                    <span className="truncate font-medium">{ticket.title}</span>
+                    <span className="truncate font-medium">
+                      {getTicketName(ticket)}
+                    </span>
 
                     <span className="text-[0.6875rem] text-gray-500 truncate">
                       {ticket.dateTime} • {ticket.quantity} tickets •{" "}
@@ -515,8 +548,8 @@ const MyEvents = () => {
                     }`}
                   >
                     <span
-                      className={`absolute top-0.5 h-4 w-4 rounded-full bg-white transition-transform duration-200 ${
-                        ticket.hide ? "translate-x-0.5" : "-translate-x-4.5"
+                      className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white transition-transform duration-200 ${
+                        ticket.hide ? "translate-x-0" : "translate-x-5"
                       }`}
                     />
                   </button>
@@ -571,7 +604,6 @@ const MyEvents = () => {
           </div>
         </div>
       )}
-      <Toaster position="top-right" reverseOrder={false} />
     </div>
   );
 };
