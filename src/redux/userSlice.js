@@ -2,18 +2,30 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { db } from "../firebase.config";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 
+import { serializeFirestoreData } from "../utils/serializeFirestoreData";
+// const normalizeUser = (uid, data) => {
+//   if (!data) return null;
+
+//   return {
+//     uid,
+//     ...data,
+//     // Only the boolean value true grants master access. Strings such as
+//     // "true" or truthy values cannot accidentally elevate a user.
+//     isMaster: data.isMaster === true,
+//   };
+// };
+
 const normalizeUser = (uid, data) => {
   if (!data) return null;
 
+  const serializedData = serializeFirestoreData(data);
+
   return {
     uid,
-    ...data,
-    // Only the boolean value true grants master access. Strings such as
-    // "true" or truthy values cannot accidentally elevate a user.
-    isMaster: data.isMaster === true,
+    ...serializedData,
+    isMaster: serializedData.isMaster === true,
   };
-};
-
+}; 
 export const fetchUser = createAsyncThunk(
   "user/fetchUser",
   async (uid, thunkAPI) => {

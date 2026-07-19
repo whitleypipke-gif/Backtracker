@@ -21,21 +21,97 @@
   }
 }
 
+/* Global document shell */
+:root {
+  --safe-area-top-color: #121212;
+  --safe-area-bottom-color: #ffffff;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background-color: var(--safe-area-bottom-color);
+}
+
 body {
   font-family: var(--font-custom);
 }
 
-html,
-body,
 #root {
-  margin: 0;
-  min-height: 100%;
+  width: 100%;
+  min-height: 100dvh;
 }
 
-.app {
-  height: env(safe-area-inset-top);
-  width: 100%;
-  background: var(--safe-area-color);
+/*
+ * Apply this class to each route-level page. The padding keeps content out of
+ * notches/home indicators, while the fixed pseudo-elements keep the unsafe
+ * regions colored when the document scrolls.
+ */
+.safe-area-page {
+  --safe-area-top-color: #121212;
+  --safe-area-bottom-color: #ffffff;
+
+  position: relative;
+  isolation: isolate;
+  min-height: 100dvh;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-right: env(safe-area-inset-right, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-left: env(safe-area-inset-left, 0px);
+  background-color: var(--safe-area-bottom-color);
+}
+
+.safe-area-page::before,
+.safe-area-page::after {
+  content: "";
+  position: fixed;
+  right: 0;
+  left: 0;
+  z-index: 9999;
+  pointer-events: none;
+}
+
+.safe-area-page::before {
+  top: 0;
+  height: env(safe-area-inset-top, 0px);
+  background-color: var(--safe-area-top-color);
+}
+
+.safe-area-page::after {
+  bottom: 0;
+  height: env(safe-area-inset-bottom, 0px);
+  background-color: var(--safe-area-bottom-color);
+}
+
+.safe-area-dark {
+  --safe-area-top-color: #121212;
+  --safe-area-bottom-color: #ffffff;
+}
+
+.safe-area-light {
+  --safe-area-top-color: #ffffff;
+  --safe-area-bottom-color: #ffffff;
+}
+
+.safe-area-admin {
+  --safe-area-top-color: #101828;
+  --safe-area-bottom-color: #101828;
+}
+
+.safe-area-ticket-view {
+  --safe-area-top-color: #1f2937;
+  --safe-area-bottom-color: #1f2937;
+}
+
+.safe-area-bottom-sheet {
+  padding-bottom: env(safe-area-inset-bottom, 0px) !important;
 }
 
 @layer utilities {

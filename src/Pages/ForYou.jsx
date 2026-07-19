@@ -185,16 +185,14 @@ const ForYou = () => {
   }, []);
 
   useEffect(() => {
-  window.scrollTo(0, 0);
-
-  document.documentElement.style.setProperty(
-    "--safe-area-color",
-    "#101828"
-  );
-}, []);
+    window.scrollTo(0, 0);
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute("content", "#101828");
+  }, []);
 
   return (
-    <>
+    <div className="safe-area-page safe-area-admin">
       <AddTicket />
       <div className="min-h-screen bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 text-gray-100 flex flex-col items-center py-10 px-4">
         <Toaster position="top-right" reverseOrder={false} />
@@ -379,7 +377,7 @@ const ForYou = () => {
        
         </div>
       </div>
-    </>
+    </div>
   );
 };
 

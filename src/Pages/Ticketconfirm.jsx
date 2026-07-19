@@ -27,16 +27,14 @@ const TicketConfirm = () => {
   }, [user]);
 
   useEffect(() => {
-  window.scrollTo(0, 0);
-
-  document.documentElement.style.setProperty(
-    "--safe-area-color",
-    "#ffffff"
-  );
-}, []);
+    window.scrollTo(0, 0);
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute("content", "#ffffff");
+  }, []);
 
   return (
-    <div className=" bg-white flex flex-col">
+    <div className="safe-area-page safe-area-light min-h-screen bg-white flex flex-col">
       {/* Header with blue bar + logo */}
       <div className="bg-white border-b border-gray-200 px-6  flex justify-center">
         <img src="/ticketmasterf.png" alt="ticketmaster" className="h-20" />

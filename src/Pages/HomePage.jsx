@@ -91,16 +91,14 @@ const Home = () => {
   };
 
   useEffect(() => {
-  window.scrollTo(0, 0);
-
-  document.documentElement.style.setProperty(
-    "--safe-area-color",
-    "#121212"
-  );
-}, []);
+    window.scrollTo(0, 0);
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute("content", "#121212");
+  }, []);
 
   return (
-    <>
+    <div className="safe-area-page safe-area-dark">
       <Navbar />
 
       <main className="bg-white  text-white">
@@ -370,7 +368,7 @@ const Home = () => {
           </section>
         )}
       </main>
-    </>
+    </div>
   );
 };
 

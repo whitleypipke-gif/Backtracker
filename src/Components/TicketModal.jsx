@@ -366,7 +366,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
       >
         <div
           ref={mainModalRef}
-          className="bg-white flex flex-col overflow-hidden"
+          className="safe-area-page safe-area-dark bg-white flex flex-col overflow-hidden"
           style={{
             height: `${screenHeight}px`,
           }}
@@ -590,7 +590,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
       >
         <div
           ref={transferModalRef}
-          className="bg-gray-800 w-full h-full overflow-y-auto text-white overflow-hidden"
+          className="safe-area-page safe-area-ticket-view bg-gray-800 w-full h-full overflow-y-auto text-white overflow-hidden"
         >
           <div className="flex items-baseline justify-between px-4 pt-6 pb-2 w-full">
             <button
@@ -741,7 +741,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
         style={ticketDetailsModalStyles}
         ariaHideApp={false}
       >
-        <div ref={transferModalRef} className="bg-white h-full overflow-y-auto">
+        <div ref={transferModalRef} className="safe-area-page safe-area-dark bg-white h-full overflow-y-auto">
           <div className="w-full h-64 relative">
             <div className="absolute top-0 left-0 w-full flex justify-between items-center text-white px-4 py-3">
               <div
@@ -939,7 +939,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
         ariaHideApp={false}
       >
         <div
-          className="rounded-t-lg shadow-lg py-2 px-4 relative"
+          className="safe-area-bottom-sheet rounded-t-lg shadow-lg py-2 px-4 relative"
           ref={transferModalRef}
         >
           {/* Transfer Modal Header */}
@@ -1240,7 +1240,7 @@ function TransferDetailModal({
         )}
 
         <div
-          className="rounded-t-lg shadow-lg p-4  pt-2 relative"
+          className="safe-area-bottom-sheet rounded-t-lg shadow-lg p-4 pt-2 relative"
           ref={transferDetailModalRef}
         >
           {/* Header */}
@@ -1327,7 +1327,7 @@ function TransferDetailModal({
         isOpen={showSuccess}
         onRequestClose={() => setShowSuccess(false)}
         overlayClassName="fixed inset-0 bg-black/50 z-[11000] flex items-center justify-center"
-        className="relative w-full h-full mx-auto bg-white overflow-hidden z-[11001]"
+        className="safe-area-page safe-area-light relative w-full h-full mx-auto bg-white overflow-hidden z-[11001]"
         ariaHideApp={false}
       >
         {/* Header with blue bar + logo */}

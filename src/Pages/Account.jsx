@@ -270,16 +270,14 @@ const Account = () => {
   };
 
   useEffect(() => {
-  window.scrollTo(0, 0);
-
-  document.documentElement.style.setProperty(
-    "--safe-area-color",
-    "#121212"
-  );
-}, []);
+    window.scrollTo(0, 0);
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute("content", "#121212");
+  }, []);
 
   return (
-    <div className="min-h-screen bg-white text-black pb-10">
+    <div className="safe-area-page safe-area-dark min-h-screen bg-white text-black pb-10">
       {/* Header Section */}
       <div className="bg-customBlack text-white py-6 text-center relative">
         <h1 className="mb-2">My Account</h1>

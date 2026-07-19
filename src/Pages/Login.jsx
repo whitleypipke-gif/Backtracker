@@ -286,12 +286,13 @@ const Login = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-
-    document.documentElement.style.setProperty("--safe-area-color", "#ffffff");
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute("content", "#ffffff");
   }, []);
 
   return (
-    <>
+    <main className="safe-area-page safe-area-light">
       <div className="flex flex-col items-center justify-center text-black bg-white my-14 mx-5">
         <div className="w-full max-w-md">
           <h1 className="text-[1.4375rem] w-full max-w-md text-left font-bold mb-5">
@@ -423,7 +424,7 @@ const Login = () => {
           </p>
         </div>
       </div>
-    </>
+    </main>
   );
 };
 

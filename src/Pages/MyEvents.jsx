@@ -21,6 +21,7 @@ import { useAuth } from "../Context/AuthContext";
 import TicketModal from "../Components/TicketModal";
 import { toast } from "react-hot-toast";
 import { db } from "../firebase.config";
+import { serializeFirestoreData } from "../utils/serializeFirestoreData";
 
 const DEFAULT_COUNTRY = {
   isoCode: "US",
@@ -98,7 +99,6 @@ const MyEvents = () => {
 
   useEffect(() => {
     const handlePopState = (event) => {
-      console.log("POPSTATE:", event.state);
       const state = event.state;
 
       // Still inside TicketModal
@@ -115,7 +115,6 @@ const MyEvents = () => {
 
     return () => {
       window.removeEventListener("popstate", handlePopState);
-      console.log(window.history.state);
     };
   }, []);
 
@@ -204,41 +203,97 @@ const MyEvents = () => {
   useEffect(() => {
     if (!user?.uid || !userProfileLoaded) {
       dispatch(clearTickets());
-      return;
+      return undefined;
     }
 
+    let disposed = false;
+    let listenerTerminated = false;
+    let unsubscribe = null;
+
     const source = isMasterUser ? "master" : "user";
+
     const ticketsRef = isMasterUser
       ? collection(db, "tickets")
       : collection(db, "users", user.uid, "myTickets");
 
-    const unsubscribe = onSnapshot(
-      ticketsRef,
-      (snapshot) => {
-        const updated = snapshot.docs.map((ticketDoc) => ({
-          id: ticketDoc.id,
-          ...ticketDoc.data(),
-        }));
+    const handleListenerError = (error) => {
+      listenerTerminated = true;
 
-        dispatch(
-          setTickets({
-            tickets: updated,
-            source,
-            ownerUid: isMasterUser ? null : user.uid,
-          }),
+      if (disposed) return;
+
+      const message =
+        error instanceof Error
+          ? error.message
+          : String(error ?? "Unknown error");
+
+      console.error("Tickets listener error:", {
+        code: error?.code,
+        message,
+        path: ticketsRef.path,
+        source,
+        uid: user.uid,
+        isMasterUser,
+      });
+
+      dispatch(clearTickets());
+      dispatch(setTicketsError(message));
+    };
+
+    const startListener = async () => {
+      try {
+        await user.getIdToken();
+
+        if (disposed) return;
+
+        unsubscribe = onSnapshot(
+          ticketsRef,
+          (snapshot) => {
+            if (disposed) return;
+
+            const updated = snapshot.docs.map((ticketDoc) =>
+              serializeFirestoreData({
+                id: ticketDoc.id,
+                ...ticketDoc.data(),
+              }),
+            );
+
+            dispatch(
+              setTickets({
+                tickets: updated,
+                source,
+                ownerUid: isMasterUser ? null : user.uid,
+              }),
+            );
+          },
+          handleListenerError,
         );
-      },
-      (error) => {
-        console.error("Tickets listener error:", error);
-        dispatch(setTicketsError(error.message));
-      },
-    );
+      } catch (error) {
+        handleListenerError(error);
+      }
+    };
 
-    return () => unsubscribe();
-  }, [dispatch, isMasterUser, user?.uid, userProfileLoaded]);
+    startListener();
+
+    return () => {
+      disposed = true;
+
+      if (unsubscribe && !listenerTerminated) {
+        try {
+          unsubscribe();
+        } catch (error) {
+          console.warn("Tickets listener cleanup failed:", error);
+        }
+      }
+    };
+  }, [dispatch, isMasterUser, user, userProfileLoaded]);
 
   useEffect(() => {
-    if (!user?.uid || !userProfileLoaded || isMasterUser || !acceptingTransfer) {
+    if (
+      !user?.uid ||
+      !userProfileLoaded ||
+      isMasterUser ||
+      !acceptingTransfer
+    ) {
       return;
     }
 
@@ -301,7 +356,13 @@ const MyEvents = () => {
     };
 
     createMyTicketFromTransfer();
-  }, [acceptingTransfer, isMasterUser, transferId, user?.uid, userProfileLoaded]);
+  }, [
+    acceptingTransfer,
+    isMasterUser,
+    transferId,
+    user?.uid,
+    userProfileLoaded,
+  ]);
 
   // Handler for opening a ticket view.
   // When a user clicks, ask if they want to delete the ticket.
@@ -352,15 +413,13 @@ const MyEvents = () => {
 
   useEffect(() => {
     window.scrollTo(0, 0);
-
-    document.documentElement.style.setProperty(
-      "--safe-area-color",
-      "#121212",
-    );
+    document
+      .querySelector('meta[name="theme-color"]')
+      ?.setAttribute("content", "#121212");
   }, []);
 
   return (
-    <div className="min-h-screen  bg-white text-white">
+    <div className="safe-area-page safe-area-dark min-h-screen bg-white text-white">
       {/* Header with flag */}
       <header className="px-4 py-6 flex items-center bg-customBlack justify-between relative">
         <div className="absolute left-1/2 transform -translate-x-1/2 flex items-center gap-2">

@@ -4,7 +4,6 @@ import ForYou from "../Pages/ForYou";
 import Home from "../Pages/HomePage";
 import Login from "../Pages/Login";
 import MyEvents from "../Pages/MyEvents";
-import Test from "../Pages/Test";
 import TicketConfirm from "../Pages/Ticketconfirm";
 import SplashScreen from "../Components/SplashScreen";
 import ProtectedRoute, { MasterRoute } from "./ProtectedRoutes";
@@ -13,7 +12,6 @@ import Favorites from "../Pages/Favorites";
 const AppRoutes = () => (
   <Routes>
     <Route path="/" element={<Login />} />
-    <Route path="/test" element={<Test />} />
     <Route path="/splash" element={<SplashScreen />} />
 
     <Route element={<ProtectedRoute />}>
