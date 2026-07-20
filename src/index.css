@@ -63,7 +63,7 @@ body {
   padding-top: env(safe-area-inset-top, 0px);
   padding-right: env(safe-area-inset-right, 0px);
   padding-left: env(safe-area-inset-left, 0px);
-  background-color: var(--safe-area-bottom-color);
+  /* background-color: var(--safe-area-bottom-color); */
 }
 
 .safe-area-page::before,
@@ -86,22 +86,22 @@ body {
 
 .safe-area-dark {
   --safe-area-top-color: #121212;
-  --safe-area-bottom-color: #ffffff;
+  --safe-area-bottom-color: transparent;
 }
 
 .safe-area-light {
   --safe-area-top-color: #ffffff;
-  --safe-area-bottom-color: #ffffff;
+  --safe-area-bottom-color: transparent;
 }
 
 .safe-area-admin {
   --safe-area-top-color: #101828;
-  --safe-area-bottom-color: #101828;
+  --safe-area-bottom-color: transparent;
 }
 
 .safe-area-ticket-view {
   --safe-area-top-color: #1f2937;
-  --safe-area-bottom-color: #1f2937;
+  --safe-area-bottom-color: transparent;
 }
 
 @layer utilities {

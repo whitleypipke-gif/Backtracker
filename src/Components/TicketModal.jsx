@@ -777,7 +777,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master }) => {
               </div>
             </div>
 
-            <div className="absolute bottom-0 w-full h-22 bg-gray-800 flex justify-center">
+            <div className="absolute bottom-0 w-full h-27 bg-gray-800 flex justify-center">
               <div className="justify-center items-center flex absolute top-2">
                 <GoChevronLeft
                   className="text-[1.85rem]"
