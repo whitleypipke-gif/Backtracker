@@ -279,7 +279,7 @@ const Account = () => {
   return (
     <div className="safe-area-page safe-area-dark min-h-screen bg-white text-black pb-10">
       {/* Header Section */}
-      <div className="bg-customBlack text-white py-6 text-center relative">
+      <div className="bg-customBlack text-white pt-1 pb-6 text-center relative">
         <h1 className="mb-2">My Account</h1>
         {userData ? (
           <div className="text-left px-2">
