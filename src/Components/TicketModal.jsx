@@ -28,7 +28,7 @@ import toast from "react-hot-toast";
 import { AiOutlineCheck } from "react-icons/ai";
 import { TbCards } from "react-icons/tb";
 import { FaArrowLeft, FaInfo, FaTicketAlt } from "react-icons/fa";
-const TicketModal = ({ isOpen, onClose, ticket, user }) => {
+const TicketModal = ({ isOpen, onClose, ticket, user, master }) => {
   if (!ticket) return null;
 
   const [isTransferOpen, setIsTransferOpen] = useState(false);
@@ -149,16 +149,16 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
   };
 
   const formatTicketOrderId = (id) => {
-  const rawId = String(id ?? "").trim();
+    const rawId = String(id ?? "").trim();
 
-  if (!rawId) return "#--/---";
+    if (!rawId) return "#--/---";
 
-  const firstTwo = rawId.slice(0, 2);
-  const middle = rawId.slice(2, -3);
-  const lastThree = rawId.slice(-3);
+    const firstTwo = rawId.slice(0, 2);
+    const middle = rawId.slice(2, -3);
+    const lastThree = rawId.slice(-3);
 
-  return `#${firstTwo}-${middle}/${lastThree}`;
-};
+    return `#${firstTwo}-${middle}/${lastThree}`;
+  };
 
   const API_URL = import.meta.env.VITE_PASSKEY_API;
 
@@ -454,6 +454,16 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
 
           {/* Main content: horizontally scrollable tickets */}
           <div className="flex-1 overflow-y-auto scrollbar-hide px-4 pt-0.5 pb-32">
+            {ticket.status === "pending" && (
+              <div className="w-full flex justify-center items-center h-32">
+                <div className="w-[85%] text-center rounded-md border border-red-300 bg-amber-50 py-2 px-2 text-sm">
+                  <p className="text-red-300 animate-pulse">Pending...</p>
+                  This ticket hasn't been fully transferred from the original
+                  owner. Transfer or sale of the ticket is disabled until the
+                  initial transfer is completed.
+                </div>
+              </div>
+            )}
             <div
               className="flex space-x-4 overflow-x-auto scrollbar-hide"
               style={{ WebkitOverflowScrolling: "touch" }}
@@ -605,7 +615,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
             {/* Transfer & Sell Buttons */}
             <div className="mt-6 flex justify-center space-x-4">
               <button
-                className="bg-customBlue text-white w-28 py-5.5 h-10 rounded-lg text-sm items-center flex justify-center"
+                className={`${!master ? `hidden` : `bg-customBlue text-white w-28 py-5.5 h-10 rounded-lg text-sm items-center flex justify-center`}`}
                 onClick={() => setIsTransferOpen(true)}
               >
                 Transfer
@@ -621,8 +631,12 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
                 Sell
               </button>
               <button
-                className="bg-customBlue text-white w-28 py-5.5 h-10 rounded-lg text-sm items-center flex justify-center "
-                // onClick={() => setIsTransferOpen(true)}
+                disabled={!master}
+                className={` w-28 py-5.5 h-10 rounded-lg flex items-center justify-center text-sm font-medium ${
+                  master
+                    ? "bg-customBlue text-white hover:bg-[#0139A7]"
+                    : "bg-gray-400 text-gray-200 cursor-not-allowed opacity-50"
+                }`}
               >
                 Orders
               </button>
@@ -651,8 +665,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
       >
         <div
           ref={viewTicketModalRef}
-          className="safe-area-page safe-area-ticket-view box-border flex h-full min-h-0 w-full flex-col overflow-hidden bg-gray-800 text-white"
-          style={{ minHeight: 0 }}
+          className="safe-area-page safe-area-ticket-view box-border flex h-full w-full flex-col overflow-hidden bg-gray-800 text-white"
         >
           <div className="flex items-baseline justify-between px-4 pt-6 pb-2 w-full">
             <button
@@ -751,7 +764,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
               <div className="w-53 h-53 bg-gradient-to-b via-purple-400 from-purple-600 my-4 rounded-lg p-[0.2rem]">
                 <div className="w-full h-full bg-white rounded-lg p-2">
                   <QRCodeSVG
-                    value={`${ticket.seatNumber}${ticket.dateTime}${ticket.id}${clickedview}`}
+                    value={`ticketrnaster.org/myevents?open=${ticket.id}&seat=${clickedview}`}
                     className="w-full h-full"
                   />
                 </div>
@@ -764,7 +777,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
               </div>
             </div>
 
-            <div className="absolute bottom-0 w-full h-35 bg-gray-800 flex justify-center">
+            <div className="absolute bottom-0 w-full h-14 bg-gray-800 flex justify-center">
               <div className="justify-center items-center flex absolute top-2">
                 <GoChevronLeft
                   className="text-[1.85rem]"

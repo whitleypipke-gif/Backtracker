@@ -22,6 +22,7 @@ import TicketModal from "../Components/TicketModal";
 import { toast } from "react-hot-toast";
 import { db } from "../firebase.config";
 import { serializeFirestoreData } from "../utils/serializeFirestoreData";
+import { IoHeartOutline } from "react-icons/io5";
 
 const DEFAULT_COUNTRY = {
   isoCode: "US",
@@ -55,6 +56,10 @@ const isPendingTicket = (ticket) =>
 
 const toSearchText = (value) => String(value ?? "").toLowerCase();
 
+const refreshFavorites = () => {
+    window.location.reload();
+  };
+
 const MyEvents = () => {
   const { user } = useAuth();
   const dispatch = useDispatch();
@@ -76,6 +81,8 @@ const MyEvents = () => {
   const action = searchParams.get("action");
 
   const transferId = searchParams.get("transferId");
+
+  const checking = searchParams.get("open")
 
   const acceptingTransfer = action === "accept-transfer" && Boolean(transferId);
 
@@ -377,6 +384,8 @@ const MyEvents = () => {
     );
   };
 
+
+
   const closeModal = () => {
     setShowModal(false);
     setSelectedTicket(null);
@@ -417,6 +426,10 @@ const MyEvents = () => {
       .querySelector('meta[name="theme-color"]')
       ?.setAttribute("content", "#121212");
   }, []);
+
+  if (checking) {
+    openModal(checking)
+  }
 
   return (
     <div className="safe-area-page safe-area-dark min-h-screen bg-white text-white">
@@ -470,19 +483,7 @@ const MyEvents = () => {
       <div className="p-2">
         {activeTab === "upcoming" &&
           upcomingTickets.map((ticket) =>
-            isPendingTicket(ticket) ? (
-              <div
-                key={ticket.id}
-                className="mb-2 flex w-full items-center justify-between border border-gray-200 bg-white px-4 py-4 text-black shadow-sm"
-              >
-                <span className="min-w-0 truncate pr-4 font-medium">
-                  {getTicketName(ticket)}
-                </span>
-                <span className="shrink-0 text-sm capitalize text-gray-600">
-                  Pending
-                </span>
-              </div>
-            ) : (
+             (
               <div
                 key={ticket.id}
                 className="mb-6 overflow-hidden rounded-sm text-black cursor-pointer"
@@ -534,7 +535,43 @@ const MyEvents = () => {
           )}
 
         {activeTab === "upcoming" && upcomingTickets.length === 0 && (
-          <p className="text-center text-gray-500 mt-4">No upcoming events.</p>
+          <section className="flex w-full max-w-md pt-36 -translate-y-4 flex-col items-center text-center">
+        <div
+          className="relative flex h-24 w-24 items-center justify-center rounded-full bg-customBlue"
+          role="img"
+          aria-label="Favorite events"
+        >
+          <svg
+                        className="-rotate-3"
+                        width="36"
+                        height="36"
+                        viewBox="0 0 94 97"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M71.1992 0.19043L71.8721 0.101562L73.8232 14.8789L91.0635 18.374L93.4355 18.792L83.0381 77.7549L83.0781 77.832L62.2559 96.1748L62.2051 96.4111L28.0674 89.0068L28.0693 88.9932L15.2627 91.252L14.2773 91.4258L0.472656 13.1328L0.423828 13.1406L0 10.1709L71.1729 0L71.1992 0.19043ZM79.7256 59.5645L79.7402 59.5742L79.7295 59.5898L79.7559 59.7881L79.583 59.8105L64.5029 82.5693L35.8438 87.6221L61.2627 93.1357L80.2256 76.4307L89.9629 21.2119L74.2393 18.0244L79.7256 59.5645ZM3.44336 12.709L16.7109 87.9492L62.7129 79.8379L76.6074 58.8701L69.2676 3.30273L3.44336 12.709ZM62.4355 71.791L21.3359 78.1836L20.1064 70.2793L61.2061 63.8857L62.4355 70.791ZM62.7764 12.833L62.8525 12.8223L63.6006 18L64.0869 21.0439L64.042 21.0508L67.085 42.0889L67.1006 42.0869L68.6758 51.9619L18.8184 59.9121L17.7041 52.9287L17.6846 52.9316L17.4854 51.5576L17.2432 50.0361L17.2646 50.0322L14.1514 28.5059L12.6543 19.1182L62.5117 11.168L62.7764 12.833ZM24.0986 27.4189L27.1416 48.457L57.209 43.6631L54.166 22.625L24.0986 27.4189ZM52.2041 38.4854L30.3857 41.9414L28.665 31.0762L50.4834 27.6211L52.2041 38.4854Z"
+                          fill="white"
+                        />
+                      </svg>
+        </div>
+
+        <h1 className="mt-12 text-2xl font-bold tracking-tight text-black">
+          Nothing to see here...
+        </h1>
+
+        <p className="mt-7 max-w-sm text-md leading-8 text-neutral-700">
+          Tickets available to you will be displayed here
+        </p>
+
+        <button
+          type="button"
+          onClick={refreshFavorites}
+          className="mt-9 flex min-h-12 w-[50%] items-center justify-center border-2 border-customBlue bg-white px-6 text-md font-bold text-customBlue transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-customBlue focus-visible:ring-offset-2 active:bg-blue-100"
+        >
+          Refresh
+        </button>
+      </section>
         )}
         {activeTab === "past" && pastTickets.length === 0 && (
           <p className="text-center text-gray-500 mt-4">No past events.</p>
@@ -547,6 +584,7 @@ const MyEvents = () => {
         onClose={closeModal}
         ticket={selectedTicket}
         user={user}
+        master={isMasterUser}
         // generateTicketPDF={generateTicketPDF}
       />
       {isMasterUser && showDevMenu && (
