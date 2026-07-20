@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Modal from "react-modal";
 import { gsap } from "gsap";
 import { MdInfo, MdInfoOutline, MdOutlineClose } from "react-icons/md";
@@ -42,7 +42,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
   // The selected seats from the seat selection step
   const [selectedSeats, setSelectedSeats] = useState([]);
   const ticketRef = useRef(); // Reference to the ticket component
-  const [screenHeight] = useState(window.innerHeight);
+  const [mainModalHeight, setMainModalHeight] = useState(null);
 
   // Generate a PDF blob from the ticket element
   const generateTicketPDF = async () => {
@@ -148,6 +148,18 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
     }
   };
 
+  const formatTicketOrderId = (id) => {
+  const rawId = String(id ?? "").trim();
+
+  if (!rawId) return "#--/---";
+
+  const firstTwo = rawId.slice(0, 2);
+  const middle = rawId.slice(2, -3);
+  const lastThree = rawId.slice(-3);
+
+  return `#${firstTwo}-${middle}/${lastThree}`;
+};
+
   const API_URL = import.meta.env.VITE_PASSKEY_API;
 
   const testEmail = async () => {
@@ -200,53 +212,57 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
 
     return () => {
       window.removeEventListener("popstate", handlePopState);
-      console.log(window.history.state);
     };
   }, []);
 
   const mainModalRef = useRef(null);
-  const transferModalRef = useRef(null);
-  const transferDetailModalRef = useRef(null);
+  const viewTicketModalRef = useRef(null);
+  const ticketDetailsModalRef = useRef(null);
+  const transferSeatModalRef = useRef(null);
 
   const quantityNumber = Number(ticket.quantity) || 1;
   const dispatch = useDispatch();
-  // ~~~~~ MAIN TICKET MODAL ANIMATIONS ~~~~~
-  const afterOpenMainModal = () => {
+  const animateModalOpen = (element) => {
+    if (!element) return;
+
     gsap.fromTo(
-      mainModalRef.current,
+      element,
       { y: "100%", opacity: 0 },
-      { y: "0%", opacity: 1, duration: 0.3, ease: "power2.out" },
+      {
+        y: 0,
+        opacity: 1,
+        duration: 0.3,
+        ease: "power2.out",
+        // A lingering transform changes fixed-position behavior on iOS.
+        clearProps: "transform",
+      },
     );
-  };
-  const beforeCloseMainModal = () => {
-    return new Promise((resolve) => {
-      gsap.to(mainModalRef.current, {
-        y: "100%",
-        opacity: 0,
-        duration: 0.2,
-        onComplete: resolve,
-      });
-    });
   };
 
-  // ~~~~~ TRANSFER SEAT SELECTION MODAL ANIMATIONS ~~~~~
-  const afterOpenTransferModal = () => {
-    gsap.fromTo(
-      transferModalRef.current,
-      { y: "100%", opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.3, ease: "power2.out" },
-    );
-  };
-  const beforeCloseTransferModal = () => {
-    return new Promise((resolve) => {
-      gsap.to(transferModalRef.current, {
+  const animateModalClose = (element) =>
+    new Promise((resolve) => {
+      if (!element) {
+        resolve();
+        return;
+      }
+
+      gsap.to(element, {
         y: "100%",
         opacity: 0,
         duration: 0.2,
         onComplete: resolve,
       });
     });
-  };
+
+  // ~~~~~ MAIN TICKET MODAL ANIMATIONS ~~~~~
+  const afterOpenMainModal = () => animateModalOpen(mainModalRef.current);
+  const beforeCloseMainModal = () => animateModalClose(mainModalRef.current);
+
+  // ~~~~~ TRANSFER SEAT SELECTION MODAL ANIMATIONS ~~~~~
+  const afterOpenTransferModal = () =>
+    animateModalOpen(transferSeatModalRef.current);
+  const beforeCloseTransferModal = () =>
+    animateModalClose(transferSeatModalRef.current);
   const handleDeleteTicket = async () => {
     if (window.confirm("Do you want to delete this ticket?")) {
       try {
@@ -259,29 +275,32 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
       }
     }
   };
-  // ~~~~~ FINAL TRANSFER DETAIL MODAL ANIMATIONS ~~~~~
-  const afterOpenTransferDetailModal = () => {
-    gsap.fromTo(
-      transferDetailModalRef.current,
-      { y: "100%", opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.3, ease: "power2.out" },
-    );
-  };
-  const beforeCloseTransferDetailModal = () => {
-    return new Promise((resolve) => {
-      gsap.to(transferDetailModalRef.current, {
-        y: "100%",
-        opacity: 0,
-        duration: 0.2,
-        onComplete: resolve,
-      });
-    });
-  };
+  useLayoutEffect(() => {
+    if (!isOpen) {
+      setMainModalHeight(null);
+      return;
+    }
+
+    // Capture the layout viewport once, before a nested input modal can open
+    // the keyboard. Do not update this value from resize events.
+    setMainModalHeight(Math.round(window.innerHeight));
+  }, [isOpen]);
+
+  const frozenModalHeight = mainModalHeight ? `${mainModalHeight}px` : "100vh";
 
   // React Modal Styles
   const mainModalStyles = {
     content: {
-      inset: 0,
+      position: "fixed",
+      top: 0,
+      right: "auto",
+      bottom: "auto",
+      left: 0,
+      width: "100%",
+      height: frozenModalHeight,
+      minHeight: frozenModalHeight,
+      maxHeight: frozenModalHeight,
+      margin: 0,
       padding: 0,
       border: "none",
       borderRadius: 0,
@@ -289,7 +308,17 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
       overflow: "hidden",
     },
     overlay: {
-      backgroundColor: "transparent",
+      position: "fixed",
+      top: 0,
+      right: 0,
+      bottom: "auto",
+      left: 0,
+      width: "100%",
+      height: frozenModalHeight,
+      minHeight: frozenModalHeight,
+      maxHeight: frozenModalHeight,
+      overflow: "hidden",
+      backgroundColor: "#121212",
       zIndex: 9999,
     },
   };
@@ -315,7 +344,15 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
 
   const ticketDetailsModalStyles = {
     content: {
-      inset: 0,
+      position: "fixed",
+      top: 0,
+      right: "auto",
+      bottom: "auto",
+      left: 0,
+      width: "100%",
+      height: frozenModalHeight,
+      minHeight: 0,
+      margin: 0,
       padding: 0,
       border: "none",
       borderRadius: 0,
@@ -323,14 +360,30 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
       overflow: "hidden",
     },
     overlay: {
-      backgroundColor: "transparent",
+      position: "fixed",
+      top: 0,
+      right: 0,
+      bottom: "auto",
+      left: 0,
+      width: "100%",
+      height: frozenModalHeight,
+      overflow: "hidden",
+      backgroundColor: "#121212",
       zIndex: 10000,
     },
   };
 
   const viewModalStyles = {
     content: {
-      inset: 0,
+      position: "fixed",
+      top: 0,
+      right: "auto",
+      bottom: "auto",
+      left: 0,
+      width: "100%",
+      height: frozenModalHeight,
+      minHeight: 0,
+      margin: 0,
       padding: 0,
       border: "none",
       borderRadius: 0,
@@ -338,7 +391,15 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
       overflow: "hidden",
     },
     overlay: {
-      backgroundColor: "transparent",
+      position: "fixed",
+      top: 0,
+      right: 0,
+      bottom: "auto",
+      left: 0,
+      width: "100%",
+      height: frozenModalHeight,
+      overflow: "hidden",
+      backgroundColor: "#1f2937",
       zIndex: 11000,
     },
   };
@@ -366,12 +427,12 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
       >
         <div
           ref={mainModalRef}
-          className="safe-area-page safe-area-dark bg-white flex flex-col overflow-hidden"
+          className="safe-area-page safe-area-dark box-border flex h-full min-h-0 flex-col overflow-hidden bg-white"
           style={{
-            height: `${screenHeight}px`,
+            height: frozenModalHeight,
+            minHeight: frozenModalHeight,
+            maxHeight: frozenModalHeight,
           }}
-          // className="fixed inset-0 bg-white flex flex-col"
-          // ref={mainModalRef}
         >
           {/* Header */}
           <div className="flex items-center bg-customBlack justify-between px-4 py-6 border-b border-gray-200">
@@ -580,7 +641,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
       {/* {VIEW TICKET MODAL} */}
       <Modal
         isOpen={isViewTicketOpen}
-        onAfterOpen={afterOpenTransferModal}
+        onAfterOpen={() => animateModalOpen(viewTicketModalRef.current)}
         onRequestClose={() => {
           window.history.back();
         }}
@@ -589,8 +650,9 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
         className={` overflow-hidden`}
       >
         <div
-          ref={transferModalRef}
-          className="safe-area-page safe-area-ticket-view bg-gray-800 w-full h-full overflow-y-auto text-white overflow-hidden"
+          ref={viewTicketModalRef}
+          className="safe-area-page safe-area-ticket-view box-border flex h-full min-h-0 w-full flex-col overflow-hidden bg-gray-800 text-white"
+          style={{ minHeight: 0 }}
         >
           <div className="flex items-baseline justify-between px-4 pt-6 pb-2 w-full">
             <button
@@ -658,7 +720,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
           </div>
 
           <div
-            className="h-dvh bg-cover bg-center flex flex-col items-center justify-center bg-no-repeat relative"
+            className="relative flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden bg-cover bg-center bg-no-repeat"
             style={{
               backgroundImage: `url(${ticket.coverImage})`,
             }}
@@ -680,7 +742,9 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
                 <div className="flex flex-col items-center justify-center">
                   <p className="font-extralight text-sm mb-2">SEAT</p>
                   <p className="font-medium text-xl">
-                    {ticket.seatNumber ? (Number(ticket.seatNumber) + (clickedview - 1)) : "-"}
+                    {ticket.seatNumber
+                      ? Number(ticket.seatNumber) + (clickedview - 1)
+                      : "-"}
                   </p>
                 </div>
               </div>
@@ -734,14 +798,18 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
       {/* {TICKET DETAILS MODAL} */}
       <Modal
         isOpen={isTransferDetailPageOpen}
-        onAfterOpen={afterOpenTransferModal}
+        onAfterOpen={() => animateModalOpen(ticketDetailsModalRef.current)}
         onRequestClose={() => {
           window.history.back();
         }}
         style={ticketDetailsModalStyles}
         ariaHideApp={false}
       >
-        <div ref={transferModalRef} className="safe-area-page safe-area-dark bg-white h-full overflow-y-auto">
+        <div
+          ref={ticketDetailsModalRef}
+          className="safe-area-page safe-area-dark box-border h-full min-h-0 overflow-y-auto bg-white"
+          style={{ minHeight: 0 }}
+        >
           <div className="w-full h-64 relative">
             <div className="absolute top-0 left-0 w-full flex justify-between items-center text-white px-4 py-3">
               <div
@@ -850,7 +918,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
                 <div className="pt-6 flex items-center justify-between">
                   <div>
                     <h3 className="text-lg text-gray-900 font-bold">
-                      Order #29-{ticket.id}/PGR
+                      Order {formatTicketOrderId(ticket.id)}
                     </h3>
                     <p className="text-gray-400 text-[0.9375rem]">
                       x{quantityNumber} Tickets
@@ -940,7 +1008,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user }) => {
       >
         <div
           className="safe-area-bottom-sheet rounded-t-lg shadow-lg py-2 px-4 relative"
-          ref={transferModalRef}
+          ref={transferSeatModalRef}
         >
           {/* Transfer Modal Header */}
           <div className="flex items-center justify-center border-b pb-2 relative">
@@ -1079,7 +1147,6 @@ function TransferDetailModal({
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
-  
   const API_URL = import.meta.env.VITE_PASSKEY_API;
 
   const afterOpen = () => {
@@ -1305,7 +1372,8 @@ function TransferDetailModal({
               await beforeClose();
               onClose();
             }}
-          >0
+          >
+            {seatCount}
             <GoChevronRight className="rotate-180 mr-1" />
             Back
           </button>
