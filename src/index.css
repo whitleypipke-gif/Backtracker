@@ -82,11 +82,7 @@ body {
   background-color: var(--safe-area-top-color);
 }
 
-.safe-area-page::after {
-  bottom: 0;
-  height: env(safe-area-inset-bottom, 0px);
-  background-color: var(--safe-area-bottom-color);
-}
+
 
 .safe-area-dark {
   --safe-area-top-color: #121212;
@@ -106,10 +102,6 @@ body {
 .safe-area-ticket-view {
   --safe-area-top-color: #1f2937;
   --safe-area-bottom-color: #1f2937;
-}
-
-.safe-area-bottom-sheet {
-  padding-bottom: env(safe-area-inset-bottom, 0px) !important;
 }
 
 @layer utilities {
