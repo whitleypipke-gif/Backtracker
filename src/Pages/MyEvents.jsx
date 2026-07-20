@@ -497,7 +497,11 @@ const MyEvents = () => {
                     className="h-48 w-full object-cover"
                   />
 
-                  <div className="absolute bottom-0 w-full text-white">
+                  {ticket.status === "pending" && <div className="bg-gray-200/70 w-full h-48 absolute z-5 top-0 flex items-center justify-center text-center">
+                  <p className="text-2xl text-blue-400 animate-pulse drop-shadow-[0_1px_4px_rgba(0,0,0,1)]">Pending...</p>
+                  </div>}
+
+                  <div className="absolute bottom-0 w-full text-white z-10">
                     <div className="w-[60%] border border-neutral-800 bg-neutral-800 px-4 pt-2 capitalize">
                       {ticket.dateTime}
                     </div>

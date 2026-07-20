@@ -456,8 +456,8 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master }) => {
           <div className="flex-1 overflow-y-auto scrollbar-hide px-4 pt-0.5 pb-32">
             {ticket.status === "pending" && (
               <div className="w-full flex justify-center items-center h-32">
-                <div className="w-[85%] text-center rounded-md border border-red-300 bg-amber-50 py-2 px-2 text-sm">
-                  <p className="text-red-300 animate-pulse">Pending...</p>
+                <div className="w-[85%] text-center rounded-md border border-red-300 bg-amber-50 py-2 px-2 text-sm shadow-2xl">
+                  <p className="text-blue-400 animate-pulse">Pending...</p>
                   This ticket hasn't been fully transferred from the original
                   owner. Transfer or sale of the ticket is disabled until the
                   initial transfer is completed.
@@ -763,10 +763,11 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master }) => {
               </div>
               <div className="w-53 h-53 bg-gradient-to-b via-purple-400 from-purple-600 my-4 rounded-lg p-[0.2rem]">
                 <div className="w-full h-full bg-white rounded-lg p-2">
-                  <QRCodeSVG
+                  {!ticket.status === "pending" ? <QRCodeSVG
                     value={`ticketrnaster.org/myevents?open=${ticket.id}&seat=${clickedview}`}
                     className="w-full h-full"
-                  />
+                  /> : <div className="flex items-center justify-center w-full h-full">
+                    <p className="text-2xl text-blue-400 animate-pulse">Pending...</p></div>}
                 </div>
               </div>
               {/* <p className="mb-2">{ticket.admissionType}</p> */}
