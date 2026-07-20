@@ -50,6 +50,8 @@ const AddTicket = () => {
   const [section, setSection] = useState("");
   const [lat, setLat] = useState("");
   const [lng, setLng] = useState("");
+  const [entrance, setEntrance] = useState("");
+  const [level, setLevel] = useState("");
 
   const [forSale, setForSale] = useState(false); // new
 
@@ -133,6 +135,8 @@ const AddTicket = () => {
         coverImage: imageUrl,
         admissionType, // ✅ New field
         section, // ✅ New field
+        level, // ✅ New field
+        entrance, // ✅ New field
         createdAt: new Date(),
       });
 
@@ -412,6 +416,48 @@ const AddTicket = () => {
             value={section}
             onChange={(e) => setSection(e.target.value)}
             placeholder="GA, VIP"
+            className="
+      border 
+      border-gray-400 
+      rounded-md 
+      p-3 
+      w-full 
+      text-gray-900
+      focus:ring-2 
+      focus:ring-blue-400
+    "
+          />
+        </div>
+
+        {/* Entrance */}
+        <div className="mb-4">
+          <label className="block font-medium mb-1">Entrance:</label>
+          <input
+            type="text"
+            value={entrance}
+            onChange={(e) => setEntrance(e.target.value)}
+            placeholder="Gate blah blah blah..."
+            className="
+      border 
+      border-gray-400 
+      rounded-md 
+      p-3 
+      w-full 
+      text-gray-900
+      focus:ring-2 
+      focus:ring-blue-400
+    "
+          />
+        </div>
+
+        {/* Level */}
+        <div className="mb-4">
+          <label className="block font-medium mb-1">Level:</label>
+          <input
+            type="text"
+            value={level}
+            onChange={(e) => setLevel(e.target.value)}
+            placeholder="Level 2/ Upper level/ blah blah blah"
             className="
       border 
       border-gray-400 

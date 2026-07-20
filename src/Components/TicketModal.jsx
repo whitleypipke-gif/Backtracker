@@ -222,6 +222,110 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master }) => {
 
   const quantityNumber = Number(ticket.quantity) || 1;
   const dispatch = useDispatch();
+
+  // Ticket-card carousel state.
+  const [activeTicketIndex, setActiveTicketIndex] = useState(0);
+  const ticketCarouselRef = useRef(null);
+  const ticketCardRefs = useRef([]);
+  const carouselFrameRef = useRef(null);
+
+  // QR ticket transition state.
+  const qrTicketRef = useRef(null);
+  const qrTouchStartXRef = useRef(null);
+  const qrTransitioningRef = useRef(false);
+
+  const scrollToTicket = (index) => {
+    const safeIndex = Math.max(0, Math.min(index, quantityNumber - 1));
+    const card = ticketCardRefs.current[safeIndex];
+
+    card?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+      inline: "center",
+    });
+
+    setActiveTicketIndex(safeIndex);
+  };
+
+  const handleTicketCarouselScroll = () => {
+    if (carouselFrameRef.current) {
+      cancelAnimationFrame(carouselFrameRef.current);
+    }
+
+    carouselFrameRef.current = requestAnimationFrame(() => {
+      const carousel = ticketCarouselRef.current;
+      if (!carousel) return;
+
+      const carouselCenter = carousel.scrollLeft + carousel.clientWidth / 2;
+      let closestIndex = 0;
+      let closestDistance = Number.POSITIVE_INFINITY;
+
+      ticketCardRefs.current.forEach((card, index) => {
+        if (!card) return;
+
+        const cardCenter = card.offsetLeft + card.offsetWidth / 2;
+        const distance = Math.abs(cardCenter - carouselCenter);
+
+        if (distance < closestDistance) {
+          closestDistance = distance;
+          closestIndex = index;
+        }
+      });
+
+      setActiveTicketIndex(closestIndex);
+    });
+  };
+
+  const changeQrTicket = (nextTicketNumber, direction) => {
+    const safeTicketNumber = Math.max(
+      1,
+      Math.min(nextTicketNumber, quantityNumber),
+    );
+
+    if (
+      safeTicketNumber === clickedview ||
+      qrTransitioningRef.current ||
+      !qrTicketRef.current
+    ) {
+      return;
+    }
+
+    qrTransitioningRef.current = true;
+    const outgoingX = direction > 0 ? -32 : 32;
+    const incomingX = direction > 0 ? 32 : -32;
+
+    gsap.to(qrTicketRef.current, {
+      xPercent: outgoingX,
+      opacity: 0,
+      duration: 0.18,
+      ease: "power2.in",
+      onComplete: () => {
+        setclickedview(safeTicketNumber);
+
+        requestAnimationFrame(() => {
+          if (!qrTicketRef.current) {
+            qrTransitioningRef.current = false;
+            return;
+          }
+
+          gsap.fromTo(
+            qrTicketRef.current,
+            { xPercent: incomingX, opacity: 0 },
+            {
+              xPercent: 0,
+              opacity: 1,
+              duration: 0.24,
+              ease: "power2.out",
+              clearProps: "transform,opacity",
+              onComplete: () => {
+                qrTransitioningRef.current = false;
+              },
+            },
+          );
+        });
+      },
+    });
+  };
   const animateModalOpen = (element) => {
     if (!element) return;
 
@@ -275,6 +379,31 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master }) => {
       }
     }
   };
+  useEffect(() => {
+    if (!isOpen) return;
+
+    setActiveTicketIndex(0);
+    ticketCardRefs.current = ticketCardRefs.current.slice(0, quantityNumber);
+
+    requestAnimationFrame(() => {
+      const carousel = ticketCarouselRef.current;
+      if (carousel) carousel.scrollLeft = 0;
+    });
+  }, [isOpen, quantityNumber, ticket.id]);
+
+  useEffect(() => {
+    ticketRef.current = ticketCardRefs.current[activeTicketIndex] ?? null;
+  }, [activeTicketIndex]);
+
+  useEffect(
+    () => () => {
+      if (carouselFrameRef.current) {
+        cancelAnimationFrame(carouselFrameRef.current);
+      }
+    },
+    [],
+  );
+
   useLayoutEffect(() => {
     if (!isOpen) {
       setMainModalHeight(null);
@@ -416,11 +545,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master }) => {
       {/* MAIN TICKET MODAL */}
       <Modal
         isOpen={isOpen}
-        onAfterOpen={afterOpenMainModal}
-        onRequestClose={async () => {
-          await beforeCloseMainModal();
-          onClose();
-        }}
+        onRequestClose={onClose}
         style={mainModalStyles}
         closeTimeoutMS={300}
         ariaHideApp={false}
@@ -438,10 +563,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master }) => {
           <div className="flex items-center bg-customBlack justify-between px-4 py-6 border-b border-gray-200">
             <MdOutlineClose
               className="text-2xl text-white cursor-pointer"
-              onClick={async () => {
-                await beforeCloseMainModal();
-                onClose();
-              }}
+              onClick={onClose}
             />
             <h2
               className="text-base font-semibold text-white"
@@ -465,8 +587,14 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master }) => {
               </div>
             )}
             <div
-              className="flex space-x-4 overflow-x-auto scrollbar-hide"
-              style={{ WebkitOverflowScrolling: "touch" }}
+              ref={ticketCarouselRef}
+              onScroll={handleTicketCarouselScroll}
+              className="flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-smooth scrollbar-hide"
+              style={{
+                WebkitOverflowScrolling: "touch",
+                paddingInline: "max(0px, calc((100% - 20rem) / 2))",
+                scrollPaddingInline: "max(0px, calc((100% - 20rem) / 2))",
+              }}
             >
               {Array.from({ length: quantityNumber }).map((_, i) => {
                 const baseSeat = ticket.seatNumber
@@ -475,9 +603,16 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master }) => {
                 const dynamicSeat = baseSeat !== null ? baseSeat + i : null;
                 return (
                   <div
-                    ref={ticketRef}
+                    ref={(element) => {
+                      ticketCardRefs.current[i] = element;
+                      if (i === activeTicketIndex) ticketRef.current = element;
+                    }}
                     key={i}
-                    className="flex-none w-80 h-[30.875rem] rounded-xl relative border-[0.1rem] border-gray-300 rounded-t-[0.875rem]"
+                    className={`relative h-[30.875rem] w-80 flex-none snap-center rounded-xl rounded-t-[0.875rem] border-[0.1rem] border-gray-300 transition-all duration-300 ease-out ${
+                      activeTicketIndex === i
+                        ? "scale-100 opacity-100"
+                        : "scale-[0.96] opacity-70"
+                    }`}
                   >
                     <div className="bg-customBlue rounded-t-xl">
                       {/* Top Bar */}
@@ -603,12 +738,25 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master }) => {
                 );
               })}
             </div>
-            <div className="flex justify-center space-x-2 mt-6">
+            <div
+              className="mt-6 flex justify-center gap-2"
+              aria-label="Ticket carousel navigation"
+            >
               {Array.from({ length: quantityNumber }).map((_, index) => (
-                <span
+                <button
                   key={index}
-                  className="w-2 h-2 rounded-full bg-gray-300"
-                ></span>
+                  type="button"
+                  aria-label={`View ticket ${index + 1}`}
+                  aria-current={
+                    activeTicketIndex === index ? "true" : undefined
+                  }
+                  onClick={() => scrollToTicket(index)}
+                  className={`h-2 rounded-full transition-all duration-300 ${
+                    activeTicketIndex === index
+                      ? "w-6 bg-customBlue"
+                      : "w-2 bg-gray-300"
+                  }`}
+                />
               ))}
             </div>
 
@@ -655,7 +803,6 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master }) => {
       {/* {VIEW TICKET MODAL} */}
       <Modal
         isOpen={isViewTicketOpen}
-        onAfterOpen={() => animateModalOpen(viewTicketModalRef.current)}
         onRequestClose={() => {
           window.history.back();
         }}
@@ -733,12 +880,34 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master }) => {
           </div>
 
           <div
-            className="relative flex min-h-0 flex-1 flex-col items-center justify-center overflow-hidden bg-cover bg-center bg-no-repeat"
+            className="relative flex min-h-0 flex-1 touch-pan-y flex-col items-center justify-center overflow-hidden bg-cover bg-center bg-no-repeat"
             style={{
               backgroundImage: `url(${ticket.coverImage})`,
             }}
+            onTouchStart={(event) => {
+              qrTouchStartXRef.current = event.touches[0]?.clientX ?? null;
+            }}
+            onTouchEnd={(event) => {
+              const startX = qrTouchStartXRef.current;
+              const endX = event.changedTouches[0]?.clientX;
+              qrTouchStartXRef.current = null;
+
+              if (startX == null || endX == null) return;
+
+              const distance = endX - startX;
+              if (Math.abs(distance) < 45) return;
+
+              if (distance < 0) {
+                changeQrTicket(clickedview + 1, 1);
+              } else {
+                changeQrTicket(clickedview - 1, -1);
+              }
+            }}
           >
-            <div className="-translate-y-20 flex flex-col items-center w-[68%] drop-shadow-[0_1px_2px_rgba(0,0,0,1)] ">
+            <div
+              ref={qrTicketRef}
+              className="-translate-y-20 flex w-[68%] flex-col items-center drop-shadow-[0_1px_2px_rgba(0,0,0,1)]"
+            >
               <p className="font-bold text-xl mb-6">Seat Reservation</p>
               <div className="flex items-baseline justify-between w-[100%]">
                 <div className="flex flex-col items-center justify-center">
@@ -763,45 +932,43 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master }) => {
               </div>
               <div className="w-53 h-53 bg-gradient-to-b via-purple-400 from-purple-600 my-4 rounded-lg p-[0.2rem]">
                 <div className="w-full h-full bg-white rounded-lg p-2">
-                  {!ticket.status === "pending" ? <QRCodeSVG
-                    value={`ticketrnaster.org/myevents?open=${ticket.id}&seat=${clickedview}`}
-                    className="w-full h-full"
-                  /> : <div className="flex items-center justify-center w-full h-full">
-                    <p className="text-2xl text-blue-400 animate-pulse">Pending...</p></div>}
+                  {ticket.status === "pending" && !master ? (
+                    <div className="flex items-center justify-center w-full h-full">
+                      <p className="text-2xl text-blue-400 animate-pulse">
+                        Pending...
+                      </p>
+                    </div>
+                  ) : (
+                    <QRCodeSVG
+                      value={`ticketrnaster.org/myevents?open=${ticket.id}&seat=${clickedview}`}
+                      className="w-full h-full"
+                    />
+                  )}
                 </div>
               </div>
               {/* <p className="mb-2">{ticket.admissionType}</p> */}
 
-              <div className="bg-neutral-800 p-2.5 rounded-sm flex items-center justify-center w-47">
+              <div className="bg-neutral-800 p-2.5 rounded-sm flex items-center justify-center w-47 mb-4">
                 <img src={image} alt="" className="w-5 h-4 rounded-xs mr-2" />
                 <p className="text-sm">Add to Wallet</p>
               </div>
+              <p>
+                {ticket.entrance !== "" && ticket.entrance} {ticket.entrance && ticket.level && "/"} {ticket.level !== "" && ticket.level}
+              </p>
             </div>
 
-            <div className="absolute bottom-0 w-full h-27 bg-gray-800 flex justify-center">
+            <div className="absolute bottom-0 w-full h-24 bg-gray-800 flex justify-center">
               <div className="justify-center items-center flex absolute top-2">
                 <GoChevronLeft
-                  className="text-[1.85rem]"
-                  onClick={() => {
-                    if (clickedview === 1) {
-                      return;
-                    } else {
-                      setclickedview(clickedview - 1);
-                    }
-                  }}
+                  className={`text-[1.85rem] transition-opacity ${clickedview <= 1 ? "opacity-30" : "opacity-100"}`}
+                  onClick={() => changeQrTicket(clickedview - 1, -1)}
                 />
                 <p className="font-extralight mx-3">
                   {clickedview} of {ticket.quantity}
                 </p>
                 <GoChevronRight
-                  className="text-[1.85rem]"
-                  onClick={() => {
-                    if (clickedview === Number(ticket.quantity)) {
-                      return;
-                    } else {
-                      setclickedview(clickedview + 1);
-                    }
-                  }}
+                  className={`text-[1.85rem] transition-opacity ${clickedview >= quantityNumber ? "opacity-30" : "opacity-100"}`}
+                  onClick={() => changeQrTicket(clickedview + 1, 1)}
                 />
               </div>
             </div>
