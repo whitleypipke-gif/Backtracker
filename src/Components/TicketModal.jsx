@@ -768,7 +768,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master, selectedCountry })
               >
                 Transfer
               </button>
-              {/* <button
+              <button
                 disabled={!ticket.forSale}
                 className={` w-28 py-5.5 h-10 rounded-lg flex items-center justify-center text-sm font-medium ${
                   ticket.forSale
@@ -777,7 +777,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master, selectedCountry })
                 }`}
               >
                 Sell
-              </button> */}
+              </button>
               <button
                 disabled={!master}
                 className={` w-28 py-5.5 h-10 rounded-lg flex items-center justify-center text-sm font-medium ${

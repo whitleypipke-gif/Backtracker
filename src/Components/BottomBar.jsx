@@ -61,18 +61,18 @@ const BottomNav = () => {
         rotation: 12,
       },
     },
-    {
-      id: "sell",
-      label: "Sell",
-      icon: <FaMoneyBillWave size={22} />,
-      path: "/ticketconfirm",
-      masterOnly: true,
-      layeredIcon: {
-        offsetX: 4,
-        offsetY: -2,
-        rotation: -8,
-      },
-    },
+    // {
+    //   id: "sell",
+    //   label: "Sell",
+    //   icon: <FaMoneyBillWave size={22} />,
+    //   path: "/ticketconfirm",
+    //   masterOnly: true,
+    //   layeredIcon: {
+    //     offsetX: 4,
+    //     offsetY: -2,
+    //     rotation: -8,
+    //   },
+    // },
     {
       id: "account",
       label: "My Account",
