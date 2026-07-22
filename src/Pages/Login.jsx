@@ -37,7 +37,9 @@ const Login = () => {
 
   const fromPathname = location.state?.from?.pathname;
   const fromSearch = location.state?.from?.search ?? "";
-  const redirectPath = fromPathname ? `${fromPathname}${fromSearch}` : "/splash";
+  const redirectPath = fromPathname
+    ? `${fromPathname}${fromSearch}`
+    : "/splash";
 
   const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
   const enteredEmail = email.trim();
@@ -46,6 +48,10 @@ const Login = () => {
   const canSubmit = isValidEmail && password !== "" && !loading;
 
   const API_URL = import.meta.env.VITE_PASSKEY_API;
+
+  const isTicketAcceptance =
+  fromPathname === "/myevents" &&
+  new URLSearchParams(fromSearch).get("action") === "accept-transfer";
 
   async function getTransferKeys(enteredEmail) {
     try {
@@ -67,12 +73,14 @@ const Login = () => {
       const firstName = data.firstName?.trim?.() ?? "";
       const lastName = data.lastName?.trim?.() ?? "";
       const name = [firstName, lastName].filter(Boolean).join(" ");
+      const country = data.country
 
       return {
         id: transferDoc.id,
         firstName,
         lastName,
         name: name || "New User",
+        country
       };
     } catch (error) {
       console.error(error);
@@ -139,7 +147,10 @@ const Login = () => {
 
     try {
       // 1. Auth profile already exists: verify the entered password for it.
-      const signInMethods = await fetchSignInMethodsForEmail(auth, enteredEmail);
+      const signInMethods = await fetchSignInMethodsForEmail(
+        auth,
+        enteredEmail,
+      );
 
       if (signInMethods.length > 0) {
         await signInWithEmailAndPassword(auth, enteredEmail, password);
@@ -299,6 +310,17 @@ const Login = () => {
             SIGN IN OR CREATE ACCOUNT
           </h1>
         </div>
+        {isTicketAcceptance && (
+          <div className="w-full max-w-md mb-6 rounded-md border border-blue-200 bg-blue-50 p-4">
+            <p className="text-sm text-blue-900">
+              <span className="font-semibold">
+                Accepting a Ticket
+              </span>
+              <br />
+              You're almost there! Please sign in (or create an account if you're new). After signing in, we'll automatically take you back so you can finish accepting your ticket.
+            </p>
+          </div>
+        )}
         <div className="w-full max-w-md">
           <h3 className="text-lg text-left mb-8 text-[1.0625rem]">
             If you don't have an account you will be prompted to create one.

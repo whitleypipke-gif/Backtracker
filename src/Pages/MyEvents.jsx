@@ -57,8 +57,8 @@ const isPendingTicket = (ticket) =>
 const toSearchText = (value) => String(value ?? "").toLowerCase();
 
 const refreshFavorites = () => {
-    window.location.reload();
-  };
+  window.location.reload();
+};
 
 const MyEvents = () => {
   const { user } = useAuth();
@@ -73,8 +73,30 @@ const MyEvents = () => {
     userStatus === "succeeded" || userStatus === "failed";
 
   // We'll treat all visible tickets as upcoming.
-  const upcomingTickets = tickets.filter((ticket) => !ticket.hide);
-  const pastTickets = [];
+  const now = new Date();
+
+  const isPastTicket = (ticket) => {
+    if (!ticket.dateTime) return false;
+
+    const eventDate = new Date(
+      `${ticket.dateTime} ${new Date().getFullYear()}`,
+    );
+
+    // Invalid dates stay in Upcoming instead of disappearing.
+    if (Number.isNaN(eventDate.getTime())) {
+      return false;
+    }
+
+    return eventDate < now;
+  };
+
+  const upcomingTickets = tickets.filter(
+    (ticket) => !ticket.hide && !isPastTicket(ticket),
+  );
+
+  const pastTickets = tickets.filter(
+    (ticket) => !ticket.hide && isPastTicket(ticket),
+  );
 
   const [searchParams] = useSearchParams();
 
@@ -82,7 +104,7 @@ const MyEvents = () => {
 
   const transferId = searchParams.get("transferId");
 
-  const checking = searchParams.get("open")
+  const checking = searchParams.get("open");
 
   const acceptingTransfer = action === "accept-transfer" && Boolean(transferId);
 
@@ -354,7 +376,7 @@ const MyEvents = () => {
           { merge: true },
         );
 
-        toast.success("Transferred ticket added to My Events");
+        toast.success("Transferred ticket added to My Tickets");
       } catch (error) {
         processedTransfersRef.current.delete(transferId);
         console.error("Error creating ticket from transfer:", error);
@@ -383,8 +405,6 @@ const MyEvents = () => {
       window.location.pathname,
     );
   };
-
-
 
   const closeModal = () => {
     setShowModal(false);
@@ -428,7 +448,7 @@ const MyEvents = () => {
   }, []);
 
   if (checking) {
-    openModal(checking)
+    openModal(checking);
   }
 
   return (
@@ -482,101 +502,144 @@ const MyEvents = () => {
       {/* Content */}
       <div className="p-2">
         {activeTab === "upcoming" &&
-          upcomingTickets.map((ticket) =>
-             (
-              <div
-                key={ticket.id}
-                className="mb-6 overflow-hidden rounded-sm text-black cursor-pointer"
-                onClick={() => openModal(ticket)}
-              >
-                {/* Image + Overlay; clicking calls openModal */}
-                <div className="relative h-48 cursor-pointer md:h-48">
-                  <img
-                    src={ticket.coverImage}
-                    alt={getTicketName(ticket)}
-                    className="h-48 w-full object-cover"
-                  />
-
-                  {ticket.status === "pending" && <div className="bg-gray-200/70 w-full h-48 absolute z-5 top-0 flex items-center justify-center text-center">
-                  <p className="text-2xl text-blue-400 animate-pulse drop-shadow-[0_1px_4px_rgba(0,0,0,1)]">Pending...</p>
-                  </div>}
-
-                  <div className="absolute bottom-0 w-full text-white z-10">
-                    <div className="w-[60%] border border-neutral-800 bg-neutral-800 px-4 pt-2 capitalize">
-                      {ticket.dateTime}
-                    </div>
-                  </div>
-                </div>
-                <div className="w-full text-white">
-                  <div className="w-full border border-neutral-800 bg-neutral-800 px-4 pb-1 pt-2 text-[1.5rem] font-extrabold capitalize">
-                    {getTicketName(ticket)}
-                  </div>
-                  <div className="flex w-full items-center justify-between border border-neutral-800 bg-neutral-800 px-4 pb-4.5 text-[0.875rem] font-light capitalize">
-                    {ticket.location}
-                    <div className="flex items-center justify-items-end text-lg font-bold">
-                      <svg
-                        className="-rotate-3"
-                        width="20"
-                        height="20"
-                        viewBox="0 0 94 97"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M71.1992 0.19043L71.8721 0.101562L73.8232 14.8789L91.0635 18.374L93.4355 18.792L83.0381 77.7549L83.0781 77.832L62.2559 96.1748L62.2051 96.4111L28.0674 89.0068L28.0693 88.9932L15.2627 91.252L14.2773 91.4258L0.472656 13.1328L0.423828 13.1406L0 10.1709L71.1729 0L71.1992 0.19043ZM79.7256 59.5645L79.7402 59.5742L79.7295 59.5898L79.7559 59.7881L79.583 59.8105L64.5029 82.5693L35.8438 87.6221L61.2627 93.1357L80.2256 76.4307L89.9629 21.2119L74.2393 18.0244L79.7256 59.5645ZM3.44336 12.709L16.7109 87.9492L62.7129 79.8379L76.6074 58.8701L69.2676 3.30273L3.44336 12.709ZM62.4355 71.791L21.3359 78.1836L20.1064 70.2793L61.2061 63.8857L62.4355 70.791ZM62.7764 12.833L62.8525 12.8223L63.6006 18L64.0869 21.0439L64.042 21.0508L67.085 42.0889L67.1006 42.0869L68.6758 51.9619L18.8184 59.9121L17.7041 52.9287L17.6846 52.9316L17.4854 51.5576L17.2432 50.0361L17.2646 50.0322L14.1514 28.5059L12.6543 19.1182L62.5117 11.168L62.7764 12.833ZM24.0986 27.4189L27.1416 48.457L57.209 43.6631L54.166 22.625L24.0986 27.4189ZM52.2041 38.4854L30.3857 41.9414L28.665 31.0762L50.4834 27.6211L52.2041 38.4854Z"
-                          fill="white"
-                        />
-                      </svg>
-                      <p className="ml-1">
-                        <span className="text-xs">x</span>
-                        {ticket.quantity}
-                      </p>
-                    </div>
+          upcomingTickets.map((ticket) => (
+            <div
+              key={ticket.id}
+              className="mb-6 overflow-hidden rounded-sm text-black cursor-pointer"
+              onClick={() => openModal(ticket)}
+            >
+              {/* Image + Overlay; clicking calls openModal */}
+              <div className="relative h-48 cursor-pointer md:h-48">
+                <img
+                  src={ticket.coverImage}
+                  alt={getTicketName(ticket)}
+                  className="h-48 w-full object-cover"
+                />
+                <div className="absolute bottom-0 w-full text-white z-10">
+                  <div className="w-[60%] border border-neutral-800 bg-neutral-800 px-4 pt-2 capitalize">
+                    {ticket.dateTime}
                   </div>
                 </div>
               </div>
-            ),
-          )}
+              <div className="w-full text-white">
+                <div className="w-full border border-neutral-800 bg-neutral-800 px-4 pb-1 pt-2 text-[1.5rem] font-extrabold capitalize">
+                  {getTicketName(ticket)}
+                </div>
+                <div className="flex w-full items-center justify-between border border-neutral-800 bg-neutral-800 px-4 pb-4.5 text-[0.875rem] font-light capitalize">
+                  {ticket.location}
+                  <div className="flex items-center justify-items-end text-lg font-bold">
+                    <svg
+                      className="-rotate-3"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 94 97"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M71.1992 0.19043L71.8721 0.101562L73.8232 14.8789L91.0635 18.374L93.4355 18.792L83.0381 77.7549L83.0781 77.832L62.2559 96.1748L62.2051 96.4111L28.0674 89.0068L28.0693 88.9932L15.2627 91.252L14.2773 91.4258L0.472656 13.1328L0.423828 13.1406L0 10.1709L71.1729 0L71.1992 0.19043ZM79.7256 59.5645L79.7402 59.5742L79.7295 59.5898L79.7559 59.7881L79.583 59.8105L64.5029 82.5693L35.8438 87.6221L61.2627 93.1357L80.2256 76.4307L89.9629 21.2119L74.2393 18.0244L79.7256 59.5645ZM3.44336 12.709L16.7109 87.9492L62.7129 79.8379L76.6074 58.8701L69.2676 3.30273L3.44336 12.709ZM62.4355 71.791L21.3359 78.1836L20.1064 70.2793L61.2061 63.8857L62.4355 70.791ZM62.7764 12.833L62.8525 12.8223L63.6006 18L64.0869 21.0439L64.042 21.0508L67.085 42.0889L67.1006 42.0869L68.6758 51.9619L18.8184 59.9121L17.7041 52.9287L17.6846 52.9316L17.4854 51.5576L17.2432 50.0361L17.2646 50.0322L14.1514 28.5059L12.6543 19.1182L62.5117 11.168L62.7764 12.833ZM24.0986 27.4189L27.1416 48.457L57.209 43.6631L54.166 22.625L24.0986 27.4189ZM52.2041 38.4854L30.3857 41.9414L28.665 31.0762L50.4834 27.6211L52.2041 38.4854Z"
+                        fill="white"
+                      />
+                    </svg>
+                    <p className="ml-1">
+                      <span className="text-xs">x</span>
+                      {ticket.quantity}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
 
         {activeTab === "upcoming" && upcomingTickets.length === 0 && (
           <section className="flex w-full max-w-md pt-36 -translate-y-4 flex-col items-center text-center">
-        <div
-          className="relative flex h-24 w-24 items-center justify-center rounded-full bg-customBlue"
-          role="img"
-          aria-label="Favorite events"
-        >
-          <svg
-                        className="-rotate-3"
-                        width="36"
-                        height="36"
-                        viewBox="0 0 94 97"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                      >
-                        <path
-                          d="M71.1992 0.19043L71.8721 0.101562L73.8232 14.8789L91.0635 18.374L93.4355 18.792L83.0381 77.7549L83.0781 77.832L62.2559 96.1748L62.2051 96.4111L28.0674 89.0068L28.0693 88.9932L15.2627 91.252L14.2773 91.4258L0.472656 13.1328L0.423828 13.1406L0 10.1709L71.1729 0L71.1992 0.19043ZM79.7256 59.5645L79.7402 59.5742L79.7295 59.5898L79.7559 59.7881L79.583 59.8105L64.5029 82.5693L35.8438 87.6221L61.2627 93.1357L80.2256 76.4307L89.9629 21.2119L74.2393 18.0244L79.7256 59.5645ZM3.44336 12.709L16.7109 87.9492L62.7129 79.8379L76.6074 58.8701L69.2676 3.30273L3.44336 12.709ZM62.4355 71.791L21.3359 78.1836L20.1064 70.2793L61.2061 63.8857L62.4355 70.791ZM62.7764 12.833L62.8525 12.8223L63.6006 18L64.0869 21.0439L64.042 21.0508L67.085 42.0889L67.1006 42.0869L68.6758 51.9619L18.8184 59.9121L17.7041 52.9287L17.6846 52.9316L17.4854 51.5576L17.2432 50.0361L17.2646 50.0322L14.1514 28.5059L12.6543 19.1182L62.5117 11.168L62.7764 12.833ZM24.0986 27.4189L27.1416 48.457L57.209 43.6631L54.166 22.625L24.0986 27.4189ZM52.2041 38.4854L30.3857 41.9414L28.665 31.0762L50.4834 27.6211L52.2041 38.4854Z"
-                          fill="white"
-                        />
-                      </svg>
-        </div>
+            <div
+              className="relative flex h-24 w-24 items-center justify-center rounded-full bg-customBlue"
+              role="img"
+              aria-label="Favorite events"
+            >
+              <svg
+                className="-rotate-3"
+                width="36"
+                height="36"
+                viewBox="0 0 94 97"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M71.1992 0.19043L71.8721 0.101562L73.8232 14.8789L91.0635 18.374L93.4355 18.792L83.0381 77.7549L83.0781 77.832L62.2559 96.1748L62.2051 96.4111L28.0674 89.0068L28.0693 88.9932L15.2627 91.252L14.2773 91.4258L0.472656 13.1328L0.423828 13.1406L0 10.1709L71.1729 0L71.1992 0.19043ZM79.7256 59.5645L79.7402 59.5742L79.7295 59.5898L79.7559 59.7881L79.583 59.8105L64.5029 82.5693L35.8438 87.6221L61.2627 93.1357L80.2256 76.4307L89.9629 21.2119L74.2393 18.0244L79.7256 59.5645ZM3.44336 12.709L16.7109 87.9492L62.7129 79.8379L76.6074 58.8701L69.2676 3.30273L3.44336 12.709ZM62.4355 71.791L21.3359 78.1836L20.1064 70.2793L61.2061 63.8857L62.4355 70.791ZM62.7764 12.833L62.8525 12.8223L63.6006 18L64.0869 21.0439L64.042 21.0508L67.085 42.0889L67.1006 42.0869L68.6758 51.9619L18.8184 59.9121L17.7041 52.9287L17.6846 52.9316L17.4854 51.5576L17.2432 50.0361L17.2646 50.0322L14.1514 28.5059L12.6543 19.1182L62.5117 11.168L62.7764 12.833ZM24.0986 27.4189L27.1416 48.457L57.209 43.6631L54.166 22.625L24.0986 27.4189ZM52.2041 38.4854L30.3857 41.9414L28.665 31.0762L50.4834 27.6211L52.2041 38.4854Z"
+                  fill="white"
+                />
+              </svg>
+            </div>
 
-        <h1 className="mt-12 text-2xl font-bold tracking-tight text-black">
-          Nothing to see here...
-        </h1>
+            <h1 className="mt-12 text-2xl font-bold tracking-tight text-black">
+              Nothing to see here...
+            </h1>
 
-        <p className="mt-7 max-w-sm text-md leading-8 text-neutral-700">
-          Tickets available to you will be displayed here
-        </p>
+            <p className="mt-7 max-w-sm text-md leading-8 text-neutral-700">
+              Tickets available to you will be displayed here
+            </p>
 
-        <button
-          type="button"
-          onClick={refreshFavorites}
-          className="mt-9 flex min-h-12 w-[50%] items-center justify-center border-2 border-customBlue bg-white px-6 text-md font-bold text-customBlue transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-customBlue focus-visible:ring-offset-2 active:bg-blue-100"
-        >
-          Refresh
-        </button>
-      </section>
+            <button
+              type="button"
+              onClick={refreshFavorites}
+              className="mt-9 flex min-h-12 w-[50%] items-center justify-center border-2 border-customBlue bg-white px-6 text-md font-bold text-customBlue transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-customBlue focus-visible:ring-offset-2 active:bg-blue-100"
+            >
+              Refresh
+            </button>
+          </section>
         )}
+        {activeTab === "past" &&
+          pastTickets.map((ticket) => (
+            <div
+              key={ticket.id}
+              className="mb-6 overflow-hidden rounded-sm text-black cursor-pointer"
+              onClick={() => openModal(ticket)}
+            >
+              {/* Image + Overlay; clicking calls openModal */}
+              <div className="relative h-48 cursor-pointer md:h-48">
+                <img
+                  src={ticket.coverImage}
+                  alt={getTicketName(ticket)}
+                  className="h-48 w-full object-cover"
+                />
+                <div className="absolute bottom-0 w-full text-white z-10">
+                  <div className="w-[60%] border border-neutral-800 bg-neutral-800 px-4 pt-2 capitalize">
+                    {ticket.dateTime}
+                  </div>
+                </div>
+              </div>
+              <div className="w-full text-white">
+                <div className="w-full border border-neutral-800 bg-neutral-800 px-4 pb-1 pt-2 text-[1.5rem] font-extrabold capitalize">
+                  {getTicketName(ticket)}
+                </div>
+                <div className="flex w-full items-center justify-between border border-neutral-800 bg-neutral-800 px-4 pb-4.5 text-[0.875rem] font-light capitalize">
+                  {ticket.location}
+                  <div className="flex items-center justify-items-end text-lg font-bold">
+                    <svg
+                      className="-rotate-3"
+                      width="20"
+                      height="20"
+                      viewBox="0 0 94 97"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M71.1992 0.19043L71.8721 0.101562L73.8232 14.8789L91.0635 18.374L93.4355 18.792L83.0381 77.7549L83.0781 77.832L62.2559 96.1748L62.2051 96.4111L28.0674 89.0068L28.0693 88.9932L15.2627 91.252L14.2773 91.4258L0.472656 13.1328L0.423828 13.1406L0 10.1709L71.1729 0L71.1992 0.19043ZM79.7256 59.5645L79.7402 59.5742L79.7295 59.5898L79.7559 59.7881L79.583 59.8105L64.5029 82.5693L35.8438 87.6221L61.2627 93.1357L80.2256 76.4307L89.9629 21.2119L74.2393 18.0244L79.7256 59.5645ZM3.44336 12.709L16.7109 87.9492L62.7129 79.8379L76.6074 58.8701L69.2676 3.30273L3.44336 12.709ZM62.4355 71.791L21.3359 78.1836L20.1064 70.2793L61.2061 63.8857L62.4355 70.791ZM62.7764 12.833L62.8525 12.8223L63.6006 18L64.0869 21.0439L64.042 21.0508L67.085 42.0889L67.1006 42.0869L68.6758 51.9619L18.8184 59.9121L17.7041 52.9287L17.6846 52.9316L17.4854 51.5576L17.2432 50.0361L17.2646 50.0322L14.1514 28.5059L12.6543 19.1182L62.5117 11.168L62.7764 12.833ZM24.0986 27.4189L27.1416 48.457L57.209 43.6631L54.166 22.625L24.0986 27.4189ZM52.2041 38.4854L30.3857 41.9414L28.665 31.0762L50.4834 27.6211L52.2041 38.4854Z"
+                        fill="white"
+                      />
+                    </svg>
+                    <p className="ml-1">
+                      <span className="text-xs">x</span>
+                      {ticket.quantity}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+
         {activeTab === "past" && pastTickets.length === 0 && (
           <p className="text-center text-gray-500 mt-4">No past events.</p>
         )}
@@ -589,6 +652,7 @@ const MyEvents = () => {
         ticket={selectedTicket}
         user={user}
         master={isMasterUser}
+        selectedCountry={selectedCountry}
         // generateTicketPDF={generateTicketPDF}
       />
       {isMasterUser && showDevMenu && (
@@ -612,77 +676,61 @@ const MyEvents = () => {
               className="w-full mb-3 border rounded px-3 py-2 text-[1rem]"
             />
             <div className="space-y-1 overflow-y-auto max-h-[50vh] border rounded p-2 mb-3">
-              {filteredTickets.map((ticket) => (
-                <label
-                  key={ticket.id}
-                  className="flex items-center gap-2 text-xs p-2 border-b"
-                >
-                  {/* Delete Selection */}
-                  <input
-                    type="checkbox"
-                    checked={selectedTickets.includes(ticket.id)}
-                    onChange={() => toggleTicketSelection(ticket.id)}
-                  />
+              {filteredTickets.map((ticket) => {
+                const eventDate = new Date(
+                  `${ticket.dateTime} ${new Date().getFullYear()}`,
+                );
 
-                  {/* Ticket Info */}
-                  <div className="flex flex-col flex-1 min-w-0">
-                    <span className="truncate font-medium">
-                      {getTicketName(ticket)}
-                    </span>
+                const isPast =
+                  !Number.isNaN(eventDate.getTime()) && eventDate < new Date();
 
-                    <span className="text-[0.6875rem] text-gray-500 truncate">
-                      {ticket.dateTime} • {ticket.quantity} tickets •{" "}
-                      {ticket.section || "GA"}
-                    </span>
-                  </div>
-
-                  {/* Visibility Toggle */}
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      toggleTicketVisibility(ticket);
-                    }}
-                    className={`relative w-10 h-5 rounded-full transition-colors duration-200 ${
-                      ticket.hide ? "bg-red-300" : "bg-green-500"
+                return (
+                  <label
+                    key={ticket.id}
+                    className={`flex items-center gap-2 text-xs p-2 border-b ${
+                      isPast ? "bg-red-100" : ""
                     }`}
                   >
-                    <span
-                      className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white transition-transform duration-200 ${
-                        ticket.hide ? "translate-x-0" : "translate-x-5"
-                      }`}
+                    {/* Delete Selection */}
+                    <input
+                      type="checkbox"
+                      checked={selectedTickets.includes(ticket.id)}
+                      onChange={() => toggleTicketSelection(ticket.id)}
                     />
-                  </button>
-                </label>
-                // <label
-                //   key={ticket.id}
-                //   className="flex items-center gap-2 text-xs p-1 border-b"
-                // >
-                //   <input
-                //     type="checkbox"
-                //     checked={selectedTickets.includes(ticket.id)}
-                //     onChange={() => toggleTicketSelection(ticket.id)}
-                //   />
-                //   <div className="flex flex-col">
-                //     <span className="truncate">{ticket.title}</span>
-                //     <span>
-                //       {ticket.dateTime} -- "{ticket.quantity} tickets" --{" "}
-                //       {ticket.location}
-                //     </span>
-                //   </div>
 
-                //   <span
-                //     className={`text-[0.625rem] px-2 py-0.5 rounded ${
-                //       ticket.hide
-                //         ? "bg-red-100 text-red-700"
-                //         : "bg-green-100 text-green-700"
-                //     }`}
-                //   >
-                //     {ticket.hide ? "Hidden" : "Visible"}
-                //   </span>
-                // </label>
-              ))}
+                    {/* Ticket Info */}
+                    <div className="flex flex-col flex-1 min-w-0">
+                      <span className="truncate font-medium">
+                        {getTicketName(ticket)}
+                      </span>
+
+                      <span className="text-[0.6875rem] text-gray-500 truncate">
+                        {ticket.dateTime} • {ticket.quantity} tickets •{" "}
+                        {ticket.section || "GA"}
+                      </span>
+                    </div>
+
+                    {/* Visibility Toggle */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        toggleTicketVisibility(ticket);
+                      }}
+                      className={`relative w-10 h-5 rounded-full transition-colors duration-200 ${
+                        ticket.hide ? "bg-red-300" : "bg-green-500"
+                      }`}
+                    >
+                      <span
+                        className={`absolute left-0.5 top-0.5 h-4 w-4 rounded-full bg-white transition-transform duration-200 ${
+                          ticket.hide ? "translate-x-0" : "translate-x-5"
+                        }`}
+                      />
+                    </button>
+                  </label>
+                );
+              })}
             </div>
 
             <div className="flex items-center justify-center">

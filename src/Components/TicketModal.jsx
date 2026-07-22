@@ -6,7 +6,7 @@ import Marquee from "react-fast-marquee";
 import { LuDot } from "react-icons/lu";
 import { IoBarcode, IoSend, IoTicket } from "react-icons/io5";
 import { QRCodeSVG } from "qrcode.react";
-import { BsArrowBarLeft, BsInfoCircle, BsUpcScan } from "react-icons/bs";
+import { BsArrowBarLeft, BsInfoCircle, BsQrCode, BsUpcScan } from "react-icons/bs";
 import { GoArrowUpRight, GoChevronLeft, GoChevronRight } from "react-icons/go";
 import { useDispatch } from "react-redux";
 import { deleteTicket } from "../redux/ticketSlice";
@@ -26,9 +26,9 @@ import { db } from "../firebase.config";
 import { collection, addDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { AiOutlineCheck } from "react-icons/ai";
-import { TbCards } from "react-icons/tb";
+import { TbCards, TbClock } from "react-icons/tb";
 import { FaArrowLeft, FaInfo, FaTicketAlt } from "react-icons/fa";
-const TicketModal = ({ isOpen, onClose, ticket, user, master }) => {
+const TicketModal = ({ isOpen, onClose, ticket, user, master, selectedCountry }) => {
   if (!ticket) return null;
 
   const [isTransferOpen, setIsTransferOpen] = useState(false);
@@ -576,7 +576,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master }) => {
 
           {/* Main content: horizontally scrollable tickets */}
           <div className="flex-1 overflow-y-auto scrollbar-hide px-4 pt-0.5 pb-32">
-            {ticket.status === "pending" && (
+            {/* {ticket.status === "pending" && (
               <div className="w-full flex justify-center items-center h-32">
                 <div className="w-[85%] text-center rounded-md border border-red-300 bg-amber-50 py-2 px-2 text-sm shadow-2xl">
                   <p className="text-blue-400 animate-pulse">Pending...</p>
@@ -585,7 +585,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master }) => {
                   initial transfer is completed.
                 </div>
               </div>
-            )}
+            )} */}
             <div
               ref={ticketCarouselRef}
               onScroll={handleTicketCarouselScroll}
@@ -763,12 +763,12 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master }) => {
             {/* Transfer & Sell Buttons */}
             <div className="mt-6 flex justify-center space-x-4">
               <button
-                className={`${!master ? `hidden` : `bg-customBlue text-white w-28 py-5.5 h-10 rounded-lg text-sm items-center flex justify-center`}`}
+                className={`bg-customBlue text-white w-28 py-5.5 h-10 rounded-lg text-sm items-center flex justify-center`}
                 onClick={() => setIsTransferOpen(true)}
               >
                 Transfer
               </button>
-              <button
+              {/* <button
                 disabled={!ticket.forSale}
                 className={` w-28 py-5.5 h-10 rounded-lg flex items-center justify-center text-sm font-medium ${
                   ticket.forSale
@@ -777,7 +777,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master }) => {
                 }`}
               >
                 Sell
-              </button>
+              </button> */}
               <button
                 disabled={!master}
                 className={` w-28 py-5.5 h-10 rounded-lg flex items-center justify-center text-sm font-medium ${
@@ -933,10 +933,11 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master }) => {
               <div className="w-53 h-53 bg-gradient-to-b via-purple-400 from-purple-600 my-4 rounded-lg p-[0.2rem]">
                 <div className="w-full h-full bg-white rounded-lg p-2">
                   {ticket.status === "pending" && !master ? (
-                    <div className="flex items-center justify-center w-full h-full">
-                      <p className="text-2xl text-blue-400 animate-pulse">
-                        Pending...
-                      </p>
+                    <div className="flex items-center justify-center w-full h-full relative">
+                      <BsQrCode className="text-black/20 w-full h-full"/>
+                      <div className="absolute text-black/80 text-4xl rounded-full bg-white p-2">
+                        <TbClock />
+                      </div>
                     </div>
                   ) : (
                     <QRCodeSVG
@@ -947,6 +948,12 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master }) => {
                 </div>
               </div>
               {/* <p className="mb-2">{ticket.admissionType}</p> */}
+
+              {ticket.status === "pending" && !master && (
+                <div className="w-[60%] mb-3 flex items-center justify-center">
+                  <p className="text-sm text-center">There are outstanding fees on this ticket. Please contact the the original ticket owner for more info to complete the transfer.</p>
+                </div>
+              ) }
 
               <div className="bg-neutral-800 p-2.5 rounded-sm flex items-center justify-center w-47 mb-4">
                 <img src={image} alt="" className="w-5 h-4 rounded-xs mr-2" />
@@ -1208,6 +1215,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master }) => {
           {/* Seat Selection */}
           <TransferSeatSelector
             quantityNumber={quantityNumber}
+            master={master}
             ticket={ticket}
             onDone={(selected) => {
               setSelectedSeats(selected);
@@ -1228,13 +1236,15 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master }) => {
         ticket={ticket}
         generateTicketPDF={generateTicketPDF}
         user={user}
+        master={master}
+        selectedCountry={selectedCountry}
       />
     </>
   );
 };
 
 /* ~~~~~~~~~~~~~~ SEAT SELECTION COMPONENT ~~~~~~~~~~~~~~ */
-function TransferSeatSelector({ quantityNumber, ticket, onDone }) {
+function TransferSeatSelector({ quantityNumber, ticket, onDone, master }) {
   const [selectedSeats, setSelectedSeats] = useState([]);
 
   const toggleSeat = (seatIndex) => {
@@ -1298,8 +1308,8 @@ function TransferSeatSelector({ quantityNumber, ticket, onDone }) {
           {selectedSeats.length} Selected
         </p>
         <button
-          className="flex items-center  text-blue-600 font-medium text-xs"
-          onClick={() => selectedSeats.length > 0 && onDone(selectedSeats)}
+          className={`flex items-center  ${master ?"text-blue-600" : "text-gray-500"} font-medium text-xs`}
+          onClick={() => selectedSeats.length > 0 && master && onDone(selectedSeats)}
         >
           Transfer To
           <GoChevronRight className="ml-1" />
@@ -1317,6 +1327,7 @@ function TransferDetailModal({
   ticket,
   generateTicketPDF,
   user,
+  selectedCountry
 }) {
   const transferDetailModalRef = useRef(null);
   const [successName, setSuccessName] = useState("");
@@ -1412,6 +1423,7 @@ function TransferDetailModal({
         admissionType: ticket.admissionType,
         seatNo: ticket.seatNumber || "-",
         status: "pending",
+        country: selectedCountry,
         createdAt: new Date().toISOString(),
         // ticketPdfUrl, // New field: URL of the uploaded ticket PDF
       };

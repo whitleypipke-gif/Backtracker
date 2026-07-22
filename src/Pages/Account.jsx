@@ -530,7 +530,7 @@ const Account = () => {
           </div>
           <GoChevronRight className="text-gray-900 text-2xl" />
         </div>
-        <div
+        {/* <div
           className="flex justify-between items-center px-2 py-3 cursor-pointer active:bg-neutral-100"
           onClick={() => createPasskey()}
         >
@@ -544,7 +544,7 @@ const Account = () => {
           ) : (
             <BiLoader className="text-gray-900 text-2xl animate-spin" />
           )}
-        </div>
+        </div> */}
       </div>
       <div className="px-4 mt-4">
         <div className="border-b border-gray-200"></div>
