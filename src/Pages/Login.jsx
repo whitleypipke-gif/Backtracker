@@ -93,7 +93,7 @@ const Login = () => {
       uid: user.uid,
       email: user.email ?? enteredEmail,
       name: transferData?.name ?? "New User",
-      location: "",
+      country: transferData?.country ?? "",
       flag: "https://example.com/default-flag.png",
       createdAt: serverTimestamp(),
     };
