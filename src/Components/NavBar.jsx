@@ -194,7 +194,7 @@ const Navbar = () => {
           <div></div>
           {/* Centered Logo */}
           <div className="flex justify-center">
-            <img src="/logo.png" alt="Logo" className="h-6" />
+            <img src="https://res.cloudinary.com/domlob3pr/image/upload/v1786492530/logo_rkfcrd.png" alt="Logo" className="h-6" /> 
           </div>
 
           {/* Country Selector (Right) */}

@@ -15,6 +15,23 @@ export default defineConfig({
 
       workbox: {
         maximumFileSizeToCacheInBytes: 20 * 1024 * 1024,
+        runtimeCaching: [
+          {
+            // Match any request sent to Cloudinary
+            urlPattern: /^https:\/\/res\.cloudinary\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'cloudinary-images',
+              expiration: {
+                maxEntries: 100, // Maximum number of images to keep in cache
+                maxAgeSeconds: 30 * 24 * 60 * 60, // 7 days (604,800 seconds)
+              },
+              cacheableResponse: {
+                statuses: [0, 200], // 0 handles opaque cross-origin responses
+              },
+            },
+          },
+        ],
       },
       manifest: {
         name: "TicketMaster",

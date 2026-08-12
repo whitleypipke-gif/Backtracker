@@ -21,7 +21,7 @@ import html2canvas from "html2canvas-pro";
 import { ClipLoader } from "react-spinners";
 import jsPDF from "jspdf";
 // 1) Firestore addDoc import
-import image from "../assets/wallet.png";
+
 import { db } from "../firebase.config";
 import { collection, addDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
@@ -956,7 +956,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master, selectedCountry })
               ) }
 
               <div className="bg-neutral-800 p-2.5 rounded-sm flex items-center justify-center w-47 mb-4">
-                <img src={image} alt="" className="w-5 h-4 rounded-xs mr-2" />
+                <img src="https://res.cloudinary.com/domlob3pr/image/upload/v1786493619/wallet_u64vdv.png" alt="" className="w-5 h-4 rounded-xs mr-2" />
                 <p className="text-sm">Add to Wallet</p>
               </div>
               <p>
