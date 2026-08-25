@@ -665,7 +665,6 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master, selectedCountry })
                     {/* Ticket Image */}
                     <div className="relative h-52 w-full bg-gray-200">
                       <img
-                        crossOrigin="anonymous"
                         src={ticket.coverImage}
                         alt={ticket.title}
                         className="object-cover w-full h-full"
