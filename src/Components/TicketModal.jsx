@@ -28,6 +28,11 @@ import toast from "react-hot-toast";
 import { AiOutlineCheck } from "react-icons/ai";
 import { TbCards, TbClock } from "react-icons/tb";
 import { FaArrowLeft, FaInfo, FaTicketAlt } from "react-icons/fa";
+
+// Keep the full dateTime (including the year) in the ticket data,
+// but hide a trailing 4-digit year anywhere the date is rendered.
+const getDisplayDateTime = (dateTime) =>
+  String(dateTime ?? "").replace(/,\s*\d{4}\s*$/, "");
 const TicketModal = ({ isOpen, onClose, ticket, user, master, selectedCountry }) => {
   if (!ticket) return null;
 
@@ -674,7 +679,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master, selectedCountry })
                       <div className="absolute bottom-0.5 left-1/2 transform -translate-x-1/2 text-center text-white w-full px-4">
                         <h2 className="text-lg font-normal">{ticket.title}</h2>
                         <p className="flex items-center justify-center text-xs font-light">
-                          {ticket.dateTime}
+                          {getDisplayDateTime(ticket.dateTime)}
                           <LuDot className="text-xl mx-0.5" />
                           {ticket.location}
                         </p>
@@ -847,7 +852,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master, selectedCountry })
                 >
                   {ticket.location}
                   <span className="mx-2">•</span>
-                  {ticket.dateTime}
+                  {getDisplayDateTime(ticket.dateTime)}
                 </div> */}
 
                 {!isOverflowing ? (
@@ -861,7 +866,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master, selectedCountry })
                       <span className="mr-8 flex items-center">
                         {ticket.location}
                         <LuDot className="mx-1" />
-                        {ticket.dateTime}
+                        {getDisplayDateTime(ticket.dateTime)}
                       </span>
                     </Marquee>
                   </>
@@ -869,7 +874,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master, selectedCountry })
                   <div className="truncate flex items-center">
                     {ticket.location}
                     <LuDot className="mx-1" />
-                    {ticket.dateTime}
+                    {getDisplayDateTime(ticket.dateTime)}
                   </div>
                 )}
               </div>
@@ -1021,7 +1026,7 @@ const TicketModal = ({ isOpen, onClose, ticket, user, master, selectedCountry })
             <div className="absolute bottom-0 px-4 w-full text-white">
               <div className="bg-neutral-800 border border-neutral-800 px-4 pt-2 w-[60%] capitalize">
                 {" "}
-                {ticket.dateTime}
+                {getDisplayDateTime(ticket.dateTime)}
               </div>
             </div>
           </div>
