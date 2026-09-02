@@ -15,6 +15,7 @@ import {
   deleteDoc,
   setDoc,
   serverTimestamp,
+  writeBatch,
 } from "firebase/firestore";
 import CountryFlag from "react-country-flag";
 import { useAuth } from "../Context/AuthContext";
@@ -60,6 +61,35 @@ const refreshFavorites = () => {
   window.location.reload();
 };
 
+const getTicketEventDate = (ticket, referenceDate = new Date()) => {
+  const rawDateTime = String(ticket?.dateTime ?? "").trim();
+
+  if (!rawDateTime) return null;
+
+  // Respect a year already included in dateTime (for example, 2027).
+  const hasExplicitYear = /\b(?:19|20)\d{2}\b/.test(rawDateTime);
+
+  // Some ticket records keep the year separately from the display date.
+  const storedYear = [
+    ticket?.year,
+    ticket?.eventYear,
+    ticket?.event_year,
+    ticket?.dateYear,
+    ticket?.date_year,
+  ]
+    .map((value) => Number(value))
+    .find((value) => Number.isInteger(value) && value >= 1900 && value <= 2100);
+
+  const fallbackYear = storedYear ?? referenceDate.getFullYear();
+  const dateValue = hasExplicitYear
+    ? rawDateTime
+    : `${rawDateTime} ${fallbackYear}`;
+
+  const eventDate = new Date(dateValue);
+
+  return Number.isNaN(eventDate.getTime()) ? null : eventDate;
+};
+
 const MyEvents = () => {
   const { user } = useAuth();
   const dispatch = useDispatch();
@@ -72,20 +102,13 @@ const MyEvents = () => {
   const userProfileLoaded =
     userStatus === "succeeded" || userStatus === "failed";
 
-  // We'll treat all visible tickets as upcoming.
   const now = new Date();
 
   const isPastTicket = (ticket) => {
-    if (!ticket.dateTime) return false;
+    const eventDate = getTicketEventDate(ticket, now);
 
-    const eventDate = new Date(
-      `${ticket.dateTime} ${new Date().getFullYear()}`,
-    );
-
-    // Invalid dates stay in Upcoming instead of disappearing.
-    if (Number.isNaN(eventDate.getTime())) {
-      return false;
-    }
+    // Invalid or missing dates stay in Upcoming instead of disappearing.
+    if (!eventDate) return false;
 
     return eventDate < now;
   };
@@ -97,6 +120,9 @@ const MyEvents = () => {
   const pastTickets = tickets.filter(
     (ticket) => !ticket.hide && isPastTicket(ticket),
   );
+
+  // Includes hidden tickets so the dev cleanup removes every past ticket.
+  const allPastTickets = tickets.filter(isPastTicket);
 
   const [searchParams] = useSearchParams();
 
@@ -220,6 +246,43 @@ const MyEvents = () => {
     } catch (err) {
       console.error(err);
       toast.error("Failed to delete tickets");
+    }
+  };
+
+  const deleteAllPastTickets = async () => {
+    if (!allPastTickets.length) {
+      toast.error("There are no past tickets to delete");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Permanently delete all ${allPastTickets.length} past ticket(s)? This cannot be undone.`,
+    );
+
+    if (!confirmed) return;
+
+    try {
+      // Firestore write batches support up to 500 operations. Keep a little
+      // headroom so this remains safe even for a large cleanup.
+      const chunkSize = 450;
+
+      for (let i = 0; i < allPastTickets.length; i += chunkSize) {
+        const batch = writeBatch(db);
+        const chunk = allPastTickets.slice(i, i + chunkSize);
+
+        chunk.forEach((ticket) => {
+          batch.delete(doc(db, "tickets", ticket.id));
+        });
+
+        await batch.commit();
+      }
+
+      const deletedIds = new Set(allPastTickets.map((ticket) => ticket.id));
+      setSelectedTickets((prev) => prev.filter((id) => !deletedIds.has(id)));
+      toast.success(`${allPastTickets.length} past ticket(s) deleted`);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to delete past tickets");
     }
   };
 
@@ -677,12 +740,7 @@ const MyEvents = () => {
             />
             <div className="space-y-1 overflow-y-auto max-h-[50vh] border rounded p-2 mb-3">
               {filteredTickets.map((ticket) => {
-                const eventDate = new Date(
-                  `${ticket.dateTime} ${new Date().getFullYear()}`,
-                );
-
-                const isPast =
-                  !Number.isNaN(eventDate.getTime()) && eventDate < new Date();
+                const isPast = isPastTicket(ticket);
 
                 return (
                   <label
@@ -733,7 +791,15 @@ const MyEvents = () => {
               })}
             </div>
 
-            <div className="flex items-center justify-center">
+            <div className="flex flex-col gap-2">
+              <button
+                disabled={!allPastTickets.length}
+                onClick={deleteAllPastTickets}
+                className="w-full bg-red-800 text-white rounded py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+              >
+                Delete All Past ({allPastTickets.length})
+              </button>
+
               {/* <button
                 disabled={!selectedTickets.length}
                 onClick={hideSelectedTickets}
@@ -745,7 +811,7 @@ const MyEvents = () => {
               <button
                 disabled={!selectedTickets.length}
                 onClick={deleteSelectedTickets}
-                className="flex-1 bg-red-600 text-white rounded py-2 text-sm"
+                className="w-full bg-red-600 text-white rounded py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
               >
                 Delete Selected
               </button>
