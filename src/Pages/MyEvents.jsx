@@ -30,6 +30,9 @@ const DEFAULT_COUNTRY = {
   name: "United States",
 };
 
+const getDisplayDateTime = (dateTime) =>
+  String(dateTime ?? "").replace(/,\s*\d{4}\s*$/, "");
+
 const normalizeCountry = (country) => {
   if (typeof country === "string") {
     return {
@@ -580,7 +583,7 @@ const MyEvents = () => {
                 />
                 <div className="absolute bottom-0 w-full text-white z-10">
                   <div className="w-[60%] border border-neutral-800 bg-neutral-800 px-4 pt-2 capitalize">
-                    {ticket.dateTime}
+                    {getDisplayDateTime(ticket.dateTime)}
                   </div>
                 </div>
               </div>
@@ -669,7 +672,7 @@ const MyEvents = () => {
                 />
                 <div className="absolute bottom-0 w-full text-white z-10">
                   <div className="w-[60%] border border-neutral-800 bg-neutral-800 px-4 pt-2 capitalize">
-                    {ticket.dateTime}
+                    {getDisplayDateTime(ticket.dateTime)}
                   </div>
                 </div>
               </div>
@@ -763,8 +766,8 @@ const MyEvents = () => {
                       </span>
 
                       <span className="text-[0.6875rem] text-gray-500 truncate">
-                        {ticket.dateTime} • {ticket.quantity} tickets •{" "}
-                        {ticket.section || "GA"}
+                        {getDisplayDateTime(ticket.dateTime)} • {ticket.quantity} tickets •{" "}
+{ticket.section || "GA"}
                       </span>
                     </div>
 
