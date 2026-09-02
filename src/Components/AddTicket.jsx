@@ -16,24 +16,27 @@ function generateTicketId() {
 
 // Helper function to format date and time into a string like "Mon, Jun 9, 6:45 PM"
 function formatDateTime(dateValue, timeValue) {
-  // If either date or time is missing, return an empty string
   if (!dateValue || !timeValue) return "";
 
-  // Create a combined Date object
-  // dateValue is "YYYY-MM-DD", timeValue is "HH:mm"
   const combined = new Date(`${dateValue}T${timeValue}`);
 
-  // Format options for day: "Mon, Jun 9"
-  const dateOptions = { weekday: "short", month: "short", day: "numeric" };
+  const dateOptions = {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  };
+
+  const timeOptions = {
+    hour: "numeric",
+    minute: "numeric",
+    hour12: true,
+  };
+
   const datePart = combined.toLocaleDateString("en-US", dateOptions);
-
-  // Format options for time: "6:45 PM"
-  const timeOptions = { hour: "numeric", minute: "numeric", hour12: true };
   const timePart = combined.toLocaleTimeString("en-US", timeOptions);
+  const year = combined.getFullYear();
 
-  // Combine them into a single string
-  // e.g. "Mon, Jun 9, 6:45 PM"
-  return `${datePart}, ${timePart}`;
+  return `${datePart}, ${timePart}, ${year}`;
 }
 
 const AddTicket = () => {
