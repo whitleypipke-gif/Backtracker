@@ -52,6 +52,9 @@ export default function TransferTicketForm({ ticket }) {
     }
   };
 
+  const getDisplayDateTime = (dateTime) =>
+  String(dateTime ?? "").replace(/,\s*\d{4}\s*$/, "");
+
   return (
     <div className="max-w-3xl w-full bg-white/10 backdrop-blur-md p-6 rounded-lg shadow-lg">
       <Toaster position="top-right" />
@@ -125,7 +128,7 @@ export default function TransferTicketForm({ ticket }) {
             <label className="block text-sm font-medium">Date & Time</label>
             <input
               type="text"
-              value={eventDateTime}
+              value={getDisplayDateTime(eventDateTime)}
               readOnly
               className="mt-1 block w-full bg-gray-100 border border-gray-300 rounded-md p-2"
             />
