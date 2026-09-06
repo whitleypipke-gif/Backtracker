@@ -661,7 +661,7 @@ const MyEvents = () => {
                 <div className="relative w-full border border-neutral-800 bg-neutral-800 px-4 pb-4 pt-2 text-[1.5rem] font-extrabold capitalize">
                   {getTicketName(ticket)}
                   <div
-                  className="absolute h-[8px] w-[70%]"
+                  className="absolute h-[5px] w-[70%]"
                   style={{
                   backgroundColor: ticketColors[ticket.id] || "#737373",
                   }}
@@ -758,7 +758,7 @@ const MyEvents = () => {
                 <div className="relative w-full border border-neutral-800 bg-neutral-800 px-4 pb-4 pt-2 text-[1.5rem] font-extrabold capitalize">
                   {getTicketName(ticket)}
                   <div
-                  className="absolute h-[8px] w-[70%]"
+                  className="absolute h-[5px] w-[70%]"
                   style={{
                   backgroundColor: ticketColors[ticket.id] || "#737373",
                   }}
