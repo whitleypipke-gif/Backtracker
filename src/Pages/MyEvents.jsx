@@ -93,6 +93,63 @@ const getTicketEventDate = (ticket, referenceDate = new Date()) => {
   return Number.isNaN(eventDate.getTime()) ? null : eventDate;
 };
 
+const getDominantColor = (img) => {
+  try {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d", {
+      willReadFrequently: true,
+    });
+
+    const size = 32;
+
+    canvas.width = size;
+    canvas.height = size;
+
+    ctx.drawImage(img, 0, 0, size, size);
+
+    const { data } = ctx.getImageData(0, 0, size, size);
+
+    let r = 0;
+    let g = 0;
+    let b = 0;
+    let count = 0;
+
+    for (let i = 0; i < data.length; i += 4) {
+      const red = data[i];
+      const green = data[i + 1];
+      const blue = data[i + 2];
+      const alpha = data[i + 3];
+
+      if (alpha < 128) continue;
+
+      const brightness = (red + green + blue) / 3;
+      const saturation =
+        Math.max(red, green, blue) -
+        Math.min(red, green, blue);
+
+      // Skip almost-black / almost-white pixels
+      if (brightness < 30 || brightness > 235) continue;
+
+      // Skip bland gray-ish colors
+      if (saturation < 20) continue;
+
+      r += red;
+      g += green;
+      b += blue;
+      count++;
+    }
+
+    if (!count) return "#737373";
+
+    return `rgb(${Math.round(r / count)}, ${Math.round(
+      g / count,
+    )}, ${Math.round(b / count)})`;
+  } catch (error) {
+    console.warn("Could not calculate ticket image color:", error);
+    return "#737373";
+  }
+};
+
 const MyEvents = () => {
   const { user } = useAuth();
   const dispatch = useDispatch();
@@ -106,6 +163,17 @@ const MyEvents = () => {
     userStatus === "succeeded" || userStatus === "failed";
 
   const now = new Date();
+  const [ticketColors, setTicketColors] = useState({});
+  const handleTicketImageLoad = (ticketId, event) => {
+  if (ticketColors[ticketId]) return;
+
+  const color = getDominantColor(event.currentTarget);
+
+  setTicketColors((prev) => ({
+    ...prev,
+    [ticketId]: color,
+  }));
+};
 
   const isPastTicket = (ticket) => {
     const eventDate = getTicketEventDate(ticket, now);
@@ -577,8 +645,10 @@ const MyEvents = () => {
               {/* Image + Overlay; clicking calls openModal */}
               <div className="relative h-48 cursor-pointer md:h-48">
                 <img
+                  crossOrigin="anonymous"
                   src={ticket.coverImage}
                   alt={getTicketName(ticket)}
+                  onLoad={(event) => handleTicketImageLoad(ticket.id, event)}
                   className="h-48 w-full object-cover"
                 />
                 <div className="absolute bottom-0 w-full text-white z-10">
@@ -591,6 +661,12 @@ const MyEvents = () => {
                 <div className="w-full border border-neutral-800 bg-neutral-800 px-4 pb-1 pt-2 text-[1.5rem] font-extrabold capitalize">
                   {getTicketName(ticket)}
                 </div>
+                <div
+                  className="h-[5px] w-full mx-4"
+                  style={{
+                  backgroundColor: ticketColors[ticket.id] || "#737373",
+                  }}
+                />
                 <div className="flex w-full items-center justify-between border border-neutral-800 bg-neutral-800 px-4 pb-4.5 text-[0.875rem] font-light capitalize">
                   {ticket.location}
                   <div className="flex items-center justify-items-end text-lg font-bold">
