@@ -658,15 +658,15 @@ const MyEvents = () => {
                 </div>
               </div>
               <div className="w-full text-white">
-                <div className="w-full border border-neutral-800 bg-neutral-800 px-4 pb-1 pt-2 text-[1.5rem] font-extrabold capitalize">
+                <div className="relative w-full border border-neutral-800 bg-neutral-800 px-4 pb-4 pt-2 text-[1.5rem] font-extrabold capitalize">
                   {getTicketName(ticket)}
-                </div>
-                <div
-                  className="h-[5px] w-full mx-4"
+                  <div
+                  className="absolute h-[8px] w-[70%]"
                   style={{
                   backgroundColor: ticketColors[ticket.id] || "#737373",
                   }}
                 />
+                </div>
                 <div className="flex w-full items-center justify-between border border-neutral-800 bg-neutral-800 px-4 pb-4.5 text-[0.875rem] font-light capitalize">
                   {ticket.location}
                   <div className="flex items-center justify-items-end text-lg font-bold">
@@ -753,8 +753,14 @@ const MyEvents = () => {
                 </div>
               </div>
               <div className="w-full text-white">
-                <div className="w-full border border-neutral-800 bg-neutral-800 px-4 pb-1 pt-2 text-[1.5rem] font-extrabold capitalize">
+                <div className="relative w-full border border-neutral-800 bg-neutral-800 px-4 pb-4 pt-2 text-[1.5rem] font-extrabold capitalize">
                   {getTicketName(ticket)}
+                  <div
+                  className="absolute h-[8px] w-[70%]"
+                  style={{
+                  backgroundColor: ticketColors[ticket.id] || "#737373",
+                  }}
+                />
                 </div>
                 <div className="flex w-full items-center justify-between border border-neutral-800 bg-neutral-800 px-4 pb-4.5 text-[0.875rem] font-light capitalize">
                   {ticket.location}
