@@ -742,8 +742,10 @@ const MyEvents = () => {
               {/* Image + Overlay; clicking calls openModal */}
               <div className="relative h-48 cursor-pointer md:h-48">
                 <img
+                  crossOrigin="anonymous"
                   src={ticket.coverImage}
                   alt={getTicketName(ticket)}
+                  onLoad={(event) => handleTicketImageLoad(ticket.id, event)}
                   className="h-48 w-full object-cover"
                 />
                 <div className="absolute bottom-0 w-full text-white z-10">
